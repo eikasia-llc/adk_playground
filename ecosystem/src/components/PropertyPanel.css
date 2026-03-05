@@ -1,0 +1,124 @@
+.property-panel {
+  width: 260px;
+  min-width: 260px;
+  background: #161822;
+  border-left: 1px solid #2d3148;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.property-panel-empty {
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  color: #475569;
+  text-align: center;
+  padding: 24px;
+}
+
+.pp-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 12px;
+  border-left: 3px solid;
+  background: #1e2130;
+  border-bottom: 1px solid #2d3148;
+}
+
+.pp-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.pp-kind {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.pp-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  word-break: break-all;
+}
+
+.pp-fields {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pp-field-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.pp-fields input,
+.pp-fields select,
+.pp-fields textarea {
+  background: #12141f;
+  border: 1px solid #2d3148;
+  border-radius: 5px;
+  color: #e2e8f0;
+  font-size: 12px;
+  padding: 6px 8px;
+  font-family: inherit;
+  transition: border-color 0.12s;
+  width: 100%;
+  resize: vertical;
+}
+
+.pp-fields input:focus,
+.pp-fields select:focus,
+.pp-fields textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+.pp-fields input::placeholder,
+.pp-fields textarea::placeholder {
+  color: #334155;
+}
+
+.pp-code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-size: 11px !important;
+}
+
+.pp-footer {
+  padding: 12px;
+  border-top: 1px solid #2d3148;
+}
+
+.pp-delete-btn {
+  width: 100%;
+  padding: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #7f1d1d;
+  border-radius: 6px;
+  background: transparent;
+  color: #f87171;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.pp-delete-btn:hover {
+  background: #7f1d1d33;
+}

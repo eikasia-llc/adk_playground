@@ -1,0 +1,120 @@
+.node-palette {
+  width: 210px;
+  min-width: 210px;
+  background: #161822;
+  border-right: 1px solid #2d3148;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.palette-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+
+.palette-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-top: 8px;
+  padding: 0 2px;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 10px;
+  background: #1e2130;
+  border-radius: 7px;
+  border-left: 3px solid;
+  cursor: grab;
+  transition: background 0.12s;
+  user-select: none;
+}
+
+.palette-item:hover {
+  background: #262a40;
+}
+
+.palette-item:active {
+  cursor: grabbing;
+}
+
+.palette-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.palette-text {
+  min-width: 0;
+}
+
+.palette-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.palette-desc {
+  font-size: 10px;
+  color: #64748b;
+  white-space: normal;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.palette-hint {
+  margin-top: 8px;
+  font-size: 10px;
+  color: #475569;
+  line-height: 1.6;
+  padding: 8px;
+  background: #12141f;
+  border-radius: 6px;
+  border: 1px dashed #2d3148;
+}
+
+.palette-edge-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.edge-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.edge-line {
+  display: inline-block;
+  width: 28px;
+  height: 2px;
+  background: #94a3b8;
+}
+
+.edge-line-dashed {
+  background: repeating-linear-gradient(
+    90deg,
+    #94a3b8 0,
+    #94a3b8 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}

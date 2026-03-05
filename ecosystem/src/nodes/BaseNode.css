@@ -1,0 +1,61 @@
+.base-node {
+  background: #1e2130;
+  border: 1.5px solid;
+  border-radius: 10px;
+  min-width: 180px;
+  max-width: 220px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+  overflow: hidden;
+}
+
+.base-node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0.95;
+}
+
+.base-node-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.base-node-body {
+  padding: 8px 10px;
+}
+
+.base-node-name {
+  font-weight: 600;
+  color: #e2e8f0;
+  word-break: break-all;
+  font-size: 13px;
+}
+
+.base-node-name em {
+  color: #4a5568;
+  font-style: italic;
+}
+
+.base-node-extra {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.node-handle {
+  width: 10px !important;
+  height: 10px !important;
+  border: 2px solid #0f1117 !important;
+}
+
+.node-handle-right {
+  right: -5px !important;
+}

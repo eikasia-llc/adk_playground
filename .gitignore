@@ -24,3 +24,8 @@ logs/
 
 # Databases
 session.db
+
+# Node.js
+node_modules/
+dist/
+*.local
