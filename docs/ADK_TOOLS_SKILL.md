@@ -1,9 +1,11 @@
 # ADK Tools Skill — Integrations & Tool Reference Guide
 - status: active
-- type: agent_skill
+- type: how-to
 - id: skill.adk_tools
-- last_checked: 2026-02-24
-- label: [agent, guide, infrastructure, backend, tools]
+- label: [agent, infrastructure, backend]
+- injection: procedural
+- volatility: evolving
+- last_checked: 2026-03-17
 <!-- content -->
 This document is the primary reference for all tool types available to ADK agents. It covers the full spectrum: **built-in ADK tools** (zero-setup, import-and-use), **native toolsets** (first-party ADK integrations with dedicated classes), **MCP-backed integrations** (third-party servers connected via `McpToolset`), and **observability plugins**. For each category, the most commonly used tools are catalogued with import paths, setup code, and key notes.
 
@@ -15,11 +17,6 @@ Related skills:
 - `ADK_SKILL.md` — foundational ADK agent patterns
 
 ## 1. Tool Type Overview
-- status: active
-- type: guideline
-- id: skill.adk_tools.overview
-- last_checked: 2026-02-24
-<!-- content -->
 ADK supports four distinct tool integration mechanisms. Choose the right one based on what you need:
 
 | Type | How it works | Best for |
@@ -32,19 +29,9 @@ ADK supports four distinct tool integration mechanisms. Choose the right one bas
 All four types can coexist in the same agent's `tools` list.
 
 ## 2. Built-in Tools
-- status: active
-- type: guideline
-- id: skill.adk_tools.builtin
-- last_checked: 2026-02-24
-<!-- content -->
 Built-in tools are pre-built ADK objects that can be attached to any `LlmAgent` with a single import. No external process, no API key beyond the Gemini key already in `.env`.
 
 ### google_search
-- status: active
-- type: guideline
-- id: skill.adk_tools.builtin.google_search
-- last_checked: 2026-02-24
-<!-- content -->
 Enables the agent to perform live Google Search queries using Gemini's grounding capability. The model decides when to call it and what to search for.
 
 ```python
@@ -67,11 +54,6 @@ agent = LlmAgent(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ### BuiltInCodeExecutor
-- status: active
-- type: guideline
-- id: skill.adk_tools.builtin.code_executor
-- last_checked: 2026-02-24
-<!-- content -->
 Lets the agent execute Python code snippets during its reasoning turn. The model generates code, executes it, and uses the output to continue its response.
 
 ```python
@@ -95,19 +77,9 @@ agent = LlmAgent(
 Reference: https://google.github.io/adk-docs/integrations/code-execution/
 
 ## 3. Native ADK Toolsets
-- status: active
-- type: guideline
-- id: skill.adk_tools.native
-- last_checked: 2026-02-24
-<!-- content -->
 Native toolsets are first-party ADK integrations that ship with `google-adk`. They have dedicated Python classes with typed configuration and GCP-native authentication.
 
 ### BigQueryToolset
-- status: active
-- type: guideline
-- id: skill.adk_tools.native.bigquery
-- last_checked: 2026-02-24
-<!-- content -->
 Connects the agent to Google BigQuery for SQL queries, data exploration, schema inspection, and AI-powered forecasting.
 
 **Installation:** No extra install — ships with `google-adk` v1.1.0+.
@@ -151,11 +123,6 @@ agent = LlmAgent(
 Reference: https://google.github.io/adk-docs/integrations/bigquery/
 
 ### VertexAiSearchTool
-- status: active
-- type: guideline
-- id: skill.adk_tools.native.vertex_ai_search
-- last_checked: 2026-02-24
-<!-- content -->
 Enables agents to search private data stores configured in Vertex AI Search and Conversation.
 
 ```python
@@ -183,11 +150,6 @@ agent = LlmAgent(
 Reference: https://google.github.io/adk-docs/integrations/vertex-ai-search/
 
 ### VertexAiRagRetrieval
-- status: active
-- type: guideline
-- id: skill.adk_tools.native.vertex_ai_rag
-- last_checked: 2026-02-24
-<!-- content -->
 Grounding tool that retrieves private documents from a Vertex AI RAG corpus before the model generates its response.
 
 ```python
@@ -217,11 +179,6 @@ agent = LlmAgent(
 Reference: https://google.github.io/adk-docs/integrations/vertex-ai-rag-engine/
 
 ## 4. MCP-Backed Integrations
-- status: active
-- type: guideline
-- id: skill.adk_tools.mcp
-- last_checked: 2026-02-24
-<!-- content -->
 MCP-backed integrations connect an ADK agent to an external tool server via `McpToolset`. The server can run as a local subprocess (stdio) or a remote HTTP service (SSE/Streamable HTTP). See `ADK_MCP_SKILL.md` for full MCP architecture details.
 
 **Common import block for all MCP integrations:**
@@ -236,11 +193,6 @@ from mcp import StdioServerParameters
 ```
 
 ### GitHub
-- status: active
-- type: guideline
-- id: skill.adk_tools.mcp.github
-- last_checked: 2026-02-24
-<!-- content -->
 Full GitHub management via the official GitHub Copilot MCP endpoint: repositories, issues, pull requests, actions, code security, Dependabot, discussions, and organizations.
 
 ```python
@@ -274,11 +226,6 @@ agent = LlmAgent(
 Reference: https://google.github.io/adk-docs/integrations/github/
 
 ### Stripe
-- status: active
-- type: guideline
-- id: skill.adk_tools.mcp.stripe
-- last_checked: 2026-02-24
-<!-- content -->
 30+ Stripe operations: payments, customers, subscriptions, invoices, refunds, pricing, and business insights.
 
 ```python
@@ -306,11 +253,6 @@ stripe_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/stripe/
 
 ### Atlassian (Jira + Confluence)
-- status: active
-- type: guideline
-- id: skill.adk_tools.mcp.atlassian
-- last_checked: 2026-02-24
-<!-- content -->
 Manage Jira issues, Confluence pages, and team content through the official Atlassian remote MCP server.
 
 ```python
@@ -336,11 +278,6 @@ atlassian_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/atlassian/
 
 ### MongoDB
-- status: active
-- type: guideline
-- id: skill.adk_tools.mcp.mongodb
-- last_checked: 2026-02-24
-<!-- content -->
 30+ database operations: natural language queries, aggregations, schema analysis, index management, and MongoDB Atlas infrastructure control.
 
 ```python
@@ -368,11 +305,6 @@ mongodb_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/mongodb/
 
 ### Pinecone
-- status: active
-- type: guideline
-- id: skill.adk_tools.mcp.pinecone
-- last_checked: 2026-02-24
-<!-- content -->
 Semantic search, vector upsert, index management, reranking, and cross-index cascading search for knowledge base and RAG use cases.
 
 ```python
@@ -397,11 +329,6 @@ pinecone_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/pinecone/
 
 ### Notion
-- status: active
-- type: guideline
-- id: skill.adk_tools.mcp.notion
-- last_checked: 2026-02-24
-<!-- content -->
 12 tools covering Notion workspace search, page/database creation and editing, comments, user management, and teamspace access.
 
 ```python
@@ -429,19 +356,9 @@ notion_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/notion/
 
 ## 5. Data & Vector Store Integrations
-- status: active
-- type: guideline
-- id: skill.adk_tools.data
-- last_checked: 2026-02-24
-<!-- content -->
 Tools in this category give agents access to structured data sources, cloud databases, and vector stores for semantic retrieval.
 
 ### MCP Toolbox for Databases
-- status: active
-- type: guideline
-- id: skill.adk_tools.data.mcp_toolbox
-- last_checked: 2026-02-24
-<!-- content -->
 Google's open-source database MCP proxy — connects agents to 30+ data sources including PostgreSQL, MySQL, Spanner, AlloyDB, BigQuery, SQLite, and more through a single `McpToolset`.
 
 ```python
@@ -458,11 +375,6 @@ db_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ### Chroma / Qdrant
-- status: active
-- type: guideline
-- id: skill.adk_tools.data.vector_stores
-- last_checked: 2026-02-24
-<!-- content -->
 Open-source vector databases for semantic search, both available as MCP servers via `npx`.
 
 ```python
@@ -491,19 +403,9 @@ qdrant_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ## 6. Enterprise & SaaS Integrations
-- status: active
-- type: guideline
-- id: skill.adk_tools.enterprise
-- last_checked: 2026-02-24
-<!-- content -->
 Tools that connect agents to enterprise collaboration platforms and SaaS ecosystems.
 
 ### Application Integration (Google Cloud)
-- status: active
-- type: guideline
-- id: skill.adk_tools.enterprise.app_integration
-- last_checked: 2026-02-24
-<!-- content -->
 Connects agents to hundreds of enterprise applications (SAP, Salesforce, ServiceNow, etc.) via Google Cloud Application Integration Connectors — no MCP server needed.
 
 ```python
@@ -529,11 +431,6 @@ agent = LlmAgent(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ### StackOne
-- status: active
-- type: guideline
-- id: skill.adk_tools.enterprise.stackone
-- last_checked: 2026-02-24
-<!-- content -->
 Single MCP connection that gives agents access to 200+ SaaS providers (Workday, Salesforce, HubSpot, Greenhouse, etc.) through StackOne's unified API.
 
 ```python
@@ -550,18 +447,8 @@ stackone_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ## 7. Communication & Media Tools
-- status: active
-- type: guideline
-- id: skill.adk_tools.communication
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Mailgun
-- status: active
-- type: guideline
-- id: skill.adk_tools.communication.mailgun
-- last_checked: 2026-02-24
-<!-- content -->
 Send emails, track delivery metrics, and manage mailing lists via the Mailgun MCP server.
 
 ```python
@@ -582,11 +469,6 @@ mailgun_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ### ElevenLabs
-- status: active
-- type: guideline
-- id: skill.adk_tools.communication.elevenlabs
-- last_checked: 2026-02-24
-<!-- content -->
 Text-to-speech, voice cloning, audio transcription, and sound effect generation through the ElevenLabs MCP server.
 
 ```python
@@ -607,19 +489,9 @@ elevenlabs_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ## 8. Observability & Monitoring
-- status: active
-- type: guideline
-- id: skill.adk_tools.observability
-- last_checked: 2026-02-24
-<!-- content -->
 Observability integrations are **not** attached as tools to agents — they hook into ADK's internal OpenTelemetry tracer. Add them at process startup, before any agent or runner is created.
 
 ### AgentOps
-- status: active
-- type: guideline
-- id: skill.adk_tools.observability.agentops
-- last_checked: 2026-02-24
-<!-- content -->
 Session replays, per-agent metrics, LLM cost tracking, tool invocation logs, and performance latency analysis.
 
 ```python
@@ -644,11 +516,6 @@ agentops.init(
 Reference: https://google.github.io/adk-docs/integrations/agentops/
 
 ### MLflow
-- status: active
-- type: guideline
-- id: skill.adk_tools.observability.mlflow
-- last_checked: 2026-02-24
-<!-- content -->
 Ingest ADK OpenTelemetry traces into MLflow for agent run analysis, tool call inspection, and model request logging.
 
 ```python
@@ -662,11 +529,6 @@ mlflow.set_experiment('adk-agent-runs')
 Reference: https://google.github.io/adk-docs/integrations/
 
 ### Arize AX / Phoenix / W&B Weave
-- status: active
-- type: guideline
-- id: skill.adk_tools.observability.other
-- last_checked: 2026-02-24
-<!-- content -->
 Production-grade LLM observability platforms. All three integrate via ADK's OpenTelemetry instrumentation with a 2–3 line setup:
 
 ```python
@@ -687,18 +549,8 @@ weave.init('my-adk-project')
 Reference: https://google.github.io/adk-docs/integrations/
 
 ## 9. Payment & Financial
-- status: active
-- type: guideline
-- id: skill.adk_tools.payments
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### PayPal
-- status: active
-- type: guideline
-- id: skill.adk_tools.payments.paypal
-- last_checked: 2026-02-24
-<!-- content -->
 Manage PayPal payments, send invoices, and handle subscriptions via the PayPal MCP server.
 
 ```python
@@ -723,11 +575,6 @@ paypal_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ## 10. Choosing the Right Tool Type
-- status: active
-- type: guideline
-- id: skill.adk_tools.decision_guide
-- last_checked: 2026-02-24
-<!-- content -->
 Use this decision table when adding a new capability to an agent:
 
 | Scenario | Recommended approach |
@@ -744,11 +591,6 @@ Use this decision table when adding a new capability to an agent:
 | Monitoring agent runs | `AgentOps`, `MLflow`, or `Phoenix` — OTel plugins, not tools |
 
 ## 11. Combining Multiple Tool Types
-- status: active
-- type: guideline
-- id: skill.adk_tools.combining
-- last_checked: 2026-02-24
-<!-- content -->
 A single `LlmAgent` can hold all tool types simultaneously in its `tools` list, **except** for tools with a single-tool limitation (`VertexAiSearchTool`, `VertexAiRagRetrieval`, `BuiltInCodeExecutor`).
 
 ```python
@@ -787,11 +629,6 @@ multi_tool_agent = LlmAgent(
 **Single-tool limitation note:** `VertexAiSearchTool`, `VertexAiRagRetrieval`, and `BuiltInCodeExecutor` must each be the only entry in the `tools` / `code_executor` parameter — they cannot be combined with others.
 
 ## 12. Quick-Reference Tool Catalogue
-- status: active
-- type: guideline
-- id: skill.adk_tools.catalogue
-- last_checked: 2026-02-24
-<!-- content -->
 All tools from this document in one table, sorted by category.
 
 | # | Tool / Integration | Category | Import / Server | Key capability |

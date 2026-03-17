@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/tmp",
+      "/private/tmp"
+    ],
+    "allow": [
+      "Bash(python3 /tmp/fix_mddia.py)"
+    ]
+  }
+}

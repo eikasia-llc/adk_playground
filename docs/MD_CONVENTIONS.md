@@ -1,8 +1,11 @@
 # Markdown-JSON Hybrid Schema Conventions
 - status: active
-- type: guideline
+- type: reference
 - id: md_json_hybrid_schema_conventions
-- label: [core]
+- label: [core, normative]
+- injection: directive
+- volatility: stable
+- last_checked: 2026-03-17
 <!-- content -->
 This document defines the strict conventions for the **Markdown-JSON Hybrid Schema** used in this project for hierarchical task coordination and agentic planning.
 
@@ -12,17 +15,11 @@ The key insight is that every Markdown file following this schema can be **lossl
 - Human-readable documentation via Markdown
 
 ## Core Principle
-- status: active
-<!-- content -->
 The system uses **Markdown headers** to define the structural hierarchy (the nodes) and **YAML-style metadata blocks** (immediately following the header) to define structured attributes. The entire tree can be serialized to JSON with a `content` field preserving the prose.
 
 ## Schema Rules
-- status: active
-<!-- content -->
 
 ### 1. Hierarchy & Nodes
-- status: active
-<!-- content -->
 - **Headers**: Use standard Markdown headers (`#`, `##`, `###`) to define the hierarchy.
 - **Nesting**: 
     - `#` is the Root/Document Title (usually only one per file).
@@ -36,8 +33,6 @@ The system uses **Markdown headers** to define the structural hierarchy (the nod
     - **Example**: `blocked_by: [task-a, task-b]` implies this node cannot start until both 'task-a' and 'task-b' are done.
 
 ### 2. Metadata Blocks
-- status: active
-<!-- content -->
 - **Location**: Metadata MUST be placed **immediately** after the header.
 - **Separator**: There MUST be a `<!-- content -->` line between the metadata block and the content. This HTML comment acts as an unambiguous separator that is invisible when rendered but easy for parsers to detect.
 - **Format**: A METADATA block. It works best as a bulleted list of key-value pairs.
@@ -58,8 +53,6 @@ This section describes the implementation details...
 ```
 
 ### 3. Allowed Fields
-- status: active
-<!-- content -->
 The following fields are standard, but the schema allows extensibility.
 
 | Field | Type | Description |
@@ -91,11 +84,6 @@ The following fields are standard, but the schema allows extensibility.
 | `label` | `list` | Array of strings (e.g., 'template', 'draft') **(Optional)** |
 
 ### Type Definitions
-- id: markdown_json_hybrid_schema_conventions.implement_user_auth.type_definitions
-- status: active
-- type: context
-- last_checked: 2026-01-31
-<!-- content -->
 - **`agent_skill`**: (Capability) Defines a persona, specialized toolset, or prompting strategy.
 - **`log`**: (Historical) Append-only records of actions, decisions, or outputs.
 - **`guideline`**: (Normative) Static rules, conventions, and high-level documentation (read-only reference).
@@ -109,11 +97,6 @@ For extended fields consider:
  - The value is single line
 
 ### Standard Labels
-- id: markdown_json_hybrid_schema_conventions.standard_labels
-- status: active
-- type: context
-- last_checked: 2026-02-23
-<!-- content -->
 Labels are lists of strings, allowing multiple keywords for a single node. The repository uses these standard labels:
 
 - **`agent`**: Agent skills or configurations.
@@ -128,8 +111,6 @@ Labels are lists of strings, allowing multiple keywords for a single node. The r
 - **`reference`**: Textbooks, external manuals, or deep-dive reference materials for context injection.
 
 ### 4. Dependencies
-- status: active
-<!-- content -->
 Dependencies are managed centrally in `dependency_registry.json`. 
 
 **Do not add `context_dependencies` metadata to files.**
@@ -143,18 +124,12 @@ To add a dependency:
 2.  **Recursive Resolution**: Dependencies are resolved recursively to build the full context.
 
 ### 5. Context & Description
-- status: active
-<!-- content -->
 - Any text following the metadata block is considered "Context" or "Description".
 - It can contain free-form Markdown, code blocks, images, etc.
 
 ## Examples
-- status: active
-<!-- content -->
 
 ### Valid Node
-- status: active
-<!-- content -->
 ```markdown
 
 ### Database Schema
@@ -166,8 +141,6 @@ Set up PostgreSQL schema for users and sessions.
 ```
 
 ### Invalid Node (Metadata not immediate)
-- status: active
-<!-- content -->
 ```markdown
 
 ### Database Schema
@@ -181,8 +154,6 @@ Some text here first.
 *Error: Metadata block must immediately follow the header.*
 
 ### Invalid Node (Bad indentation/METADATA)
-- status: active
-<!-- content -->
 ```markdown
 
 ### Database Schema
@@ -211,8 +182,6 @@ Some text here first.
 *Error: Metadata block must immediately follow the header.*
 
 ## Parsing Logic (for Developers)
-- status: active
-<!-- content -->
 1. **Scan for Headers**.
 2. **Look ahead** at the lines immediately following the header.
 3. **Parse lines** that match the METADATA key-value pattern (`- key: value` or `key: value`) until the `<!-- content -->` separator or a non-matching line is found.
@@ -222,13 +191,9 @@ Some text here first.
 > The parser maintains backward compatibility with files using a blank line as separator, but all new files and migrations should use `<!-- content -->`.
 
 ## Tooling Reference
-- status: active
-<!-- content -->
 The following Python scripts are available in `language/` to interact with this schema:
 
 ### 1. `language/md_parser.py`
-- status: active
-<!-- content -->
 - **Purpose**: The core parser enabling **bidirectional MD ↔ JSON** transformation.
 - **Key Classes**:
     - `MarkdownParser`: Parses `.md` files into a `Node` tree
@@ -240,15 +205,11 @@ The following Python scripts are available in `language/` to interact with this 
 - **Output**: JSON representation of the tree or validation errors.
 
 ### 2. `language/visualization.py`
-- status: active
-<!-- content -->
 - **Purpose**: Visualizes the task tree in the terminal with metadata.
 - **Usage**: `python3 language/visualization.py <file.md>`
 - **Output**: Unicode tree visualization.
 
 ### 3. `language/operations.py`
-- status: active
-<!-- content -->
 - **Purpose**: Manipulate task trees (merge, extend).
 - **Usage**:
     - **Merge**: `python3 language/operations.py merge <target.md> <source.md> "<Target Node Title>" [--output <out.md>]`
@@ -257,15 +218,11 @@ The following Python scripts are available in `language/` to interact with this 
         - Appends the source tree's top-level items to the target tree's top level.
 
 ### 4. `language/migrate.py`
-- status: active
-<!-- content -->
 - **Purpose**: Heuristically adds default metadata to standard Markdown headers to make them schema-compliant.
 - **Usage**: `python3 language/migrate.py <file.md> [file2.md ...]`
 - **Effect**: Modifies files in-place by injecting `- status: active` after headers that lack metadata.
 
 ### 5. `language/importer.py`
-- status: active
-<!-- content -->
 - **Purpose**: Converts legacy documents (`.docx`, `.pdf`, `.doc`) into Markdown and auto-applies the Protocol.
 - **Usage**: `python3 language/importer.py <file.docx> [file.pdf ...]`
 - **Capabilities**:
@@ -274,16 +231,12 @@ The following Python scripts are available in `language/` to interact with this 
     - **DOC**: Uses MacOS `textutil` for text extraction.
 
 ## Migration Guidelines
-- status: active
-<!-- content -->
 When migrating existing documentation to this schema:
 1. **Run the Migration Script**: Use `language/migrate.py` to add baseline metadata.
 2. **Review and Refine**: Manually update the `status` fields (e.g., change `active` to `draft` or `deprecated` where appropriate) and add `owner` information.
 3. **Structure Check**: Ensure the hierarchy makes sense as a task/node tree.
 
 ## Best Practices for AI Generation
-- status: active
-<!-- content -->
 When generating or modifying files in this repository, AI agents MUST adhere to the following best practices to ensure system stability and parsing accuracy:
 
 1.  **Always Generate IDs**: When creating new nodes (tasks, features, sections), always generate a unique `id` in the metadata (e.g., `id: component.subcomponent.task`). This ensures that references remain stable even if titles change.

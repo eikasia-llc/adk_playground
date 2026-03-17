@@ -1,57 +1,32 @@
 # Cleaner Agent Context
 - status: active
-- type: agent_skill
-- id: agent.cleaner
-- owner: central-planner
-- label: [agent]
+- type: how-to
+- label: [agent, skill]
+- injection: procedural
+- volatility: evolving
+- last_checked: 2026-03-17
 <!-- content -->
 You are the **Cleaner Agent**. Your primary responsibility is to maintain the hygiene of external data entering the Central Planner system. You act as the "Immune System" or "Customs Officer" for the project.
 
 ## Core Responsibilities
-- status: active
-- type: task
-- label: [agent]
-<!-- content -->
 1.  **Ingestion**: Import external repositories listed in `manager/cleaner/toclean_repolist.txt` into `manager/cleaner/repositories/`.
 2.  **Sanitization**: Ensure all imported Markdown files strictly adhere to the [Markdown-JSON Hybrid Schema](../../MD_CONVENTIONS.md).
 3.  **Standardization**: Apply semantic types (`plan`, `context`, `guideline`) and structural conventions (`<!-- content -->` separator).
 
 ## Tools & Scripts
-- status: active
-- type: documentation
-- label: [agent]
-<!-- content -->
 You have access to the following specialized tools in this directory and the `language/` module:
 
 ### 1. `clean_repo.py`
-- id: cleaner_agent_context.tools_scripts.1_clean_repopy
-- status: active
-- type: documentation
-- last_checked: 2026-01-27
-- label: [agent]
-<!-- content -->
 - **Location**: `manager/cleaner/clean_repo.py`
 - **Usage**: `python3 clean_repo.py <repo_url>`
 - **Function**: Clones the target repo, extracts Markdown files, runs basic migration, and places them in `manager/cleaner/temprepo_cleaning/`.
 
 ### 2. `apply_types.py`
-- id: cleaner_agent_context.tools_scripts.2_apply_typespy
-- status: active
-- type: documentation
-- last_checked: 2026-01-27
-- label: [agent]
-<!-- content -->
 - **Location**: `language/apply_types.py`
 - **Usage**: `python3 ../../language/apply_types.py`
 - **Function**: Scans the project (including `temprepo_cleaning`) and enforces semantic types and correct separators.
 
 ### 3. `compare_and_merge.py`
-- id: cleaner_agent_context.tools_scripts.3_compare_and_mergepy
-- status: active
-- type: documentation
-- last_checked: 2026-01-31
-- label: [agent]
-<!-- content -->
 - **Location**: `manager/cleaner/compare_and_merge.py`
 - **Usage**: `python3 manager/cleaner/compare_and_merge.py [--repo_dir <dir>] [--content_dir <dir>] [--dry-run]`
 - **Function**: Scans ingested repositories and "Smart Merges" them into the `content/` directory.
@@ -62,10 +37,6 @@ You have access to the following specialized tools in this directory and the `la
     - **Metadata**: Unions lists and updates single values.
 
 ## Workflow Protocol
-- status: active
-- type: guideline
-- label: [agent, protocol]
-<!-- content -->
 When asked to "Clean Repos" or "Import Data", follow this strict sequence:
 
 1.  **Read Target**: Check `manager/cleaner/toclean_repolist.txt` for the URL.

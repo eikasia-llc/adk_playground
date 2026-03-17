@@ -1,20 +1,17 @@
 # ADK MCP Skill — Model Context Protocol Integration Guide
 - status: active
-- type: agent_skill
+- type: how-to
 - id: skill.adk_mcp
-- last_checked: 2026-02-24
-- label: [agent, guide, infrastructure, backend]
+- label: [agent, infrastructure, backend]
+- injection: procedural
+- volatility: evolving
+- last_checked: 2026-03-17
 <!-- content -->
 This document is the primary reference for integrating **Model Context Protocol (MCP)** servers into ADK agents. It covers architecture, all core classes and their import paths, both integration patterns (ADK as client and ADK as server), deployment strategies, and a comprehensive tool library with 30+ real tool examples across the most important MCP servers.
 
 Reference: https://google.github.io/adk-docs/tools-custom/mcp-tools/
 
 ## 1. What is MCP?
-- status: active
-- type: guideline
-- id: skill.adk_mcp.overview
-- last_checked: 2026-02-24
-<!-- content -->
 The **Model Context Protocol (MCP)** is an open standard that defines a uniform interface for LLMs to communicate with external applications, data sources, and tools. Instead of writing a custom Python function for every capability, you connect your ADK agent to an MCP server that already implements those capabilities — and the agent gains them instantly.
 
 **Two integration directions:**
@@ -27,11 +24,6 @@ The **Model Context Protocol (MCP)** is an open standard that defines a uniform 
 This document focuses primarily on **ADK as MCP Client**, which is the pattern used in `mcp_tools/`.
 
 ## 2. Core Classes & Import Conventions
-- status: active
-- type: guideline
-- id: skill.adk_mcp.imports
-- last_checked: 2026-02-24
-<!-- content -->
 All MCP-related classes must be imported in the agent's `imports.py`. Never scatter these imports across tool files.
 
 ```python
@@ -61,18 +53,8 @@ from .imports import LlmAgent, McpToolset, StdioConnectionParams, StdioServerPar
 ```
 
 ## 3. Connection Types
-- status: active
-- type: guideline
-- id: skill.adk_mcp.connection_types
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### StdioConnectionParams — Local Subprocess
-- status: active
-- type: guideline
-- id: skill.adk_mcp.connection_types.stdio
-- last_checked: 2026-02-24
-<!-- content -->
 Use this when the MCP server is a local process launched by ADK (most common for development and containerised deployments). The server communicates with ADK via stdin/stdout.
 
 ```python
@@ -96,11 +78,6 @@ McpToolset(
 **Prerequisites**: the command (`npx`, `uvx`, a binary, etc.) must be on `$PATH`.
 
 ### SseConnectionParams — Remote HTTP Server
-- status: active
-- type: guideline
-- id: skill.adk_mcp.connection_types.sse
-- last_checked: 2026-02-24
-<!-- content -->
 Use this when the MCP server runs as a separate, long-lived service (e.g., a Cloud Run deployment) and communicates over HTTP with Server-Sent Events.
 
 ```python
@@ -124,11 +101,6 @@ McpToolset(
 | Typical use | Dev, Docker, single-tenant | Cloud, multi-tenant |
 
 ## 4. McpToolset Configuration
-- status: active
-- type: guideline
-- id: skill.adk_mcp.toolset_config
-- last_checked: 2026-02-24
-<!-- content -->
 `McpToolset` accepts the following parameters:
 
 | Parameter | Type | Required | Description |
@@ -149,18 +121,8 @@ McpToolset(
 ```
 
 ## 5. Integration Patterns
-- status: active
-- type: guideline
-- id: skill.adk_mcp.patterns
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Pattern A — ADK as MCP Client (Standard)
-- status: active
-- type: guideline
-- id: skill.adk_mcp.patterns.client
-- last_checked: 2026-02-24
-<!-- content -->
 The agent's `tools` list contains one or more `McpToolset` instances. This is the pattern used in `mcp_tools/agent.py`.
 
 ```python
@@ -179,11 +141,6 @@ root_agent = LlmAgent(
 Multiple `McpToolset` instances are fully supported — each connects to a different MCP server.
 
 ### Pattern B — ADK as MCP Server
-- status: active
-- type: guideline
-- id: skill.adk_mcp.patterns.server
-- last_checked: 2026-02-24
-<!-- content -->
 Wrap your ADK tools inside a standard MCP server so non-ADK clients can call them. Requires the `mcp` package directly.
 
 ```python
@@ -210,11 +167,6 @@ async def main():
 ```
 
 ### Pattern C — Non-`adk web` Async Usage
-- status: active
-- type: guideline
-- id: skill.adk_mcp.patterns.async
-- last_checked: 2026-02-24
-<!-- content -->
 When running ADK outside `adk web` (e.g., in a custom async script or test), you must manage the `McpToolset` lifecycle manually to ensure connections are properly closed.
 
 ```python
@@ -227,19 +179,9 @@ async def run():
 ```
 
 ## 6. MCP Tool Library — 30+ Tool Reference
-- status: active
-- type: guideline
-- id: skill.adk_mcp.tool_library
-- last_checked: 2026-02-24
-<!-- content -->
 The following tables catalogue the most important tools across the most widely used MCP servers. Tool names are the exact strings to use in `tool_filter`.
 
 ### Filesystem Server (`@modelcontextprotocol/server-filesystem`)
-- status: active
-- type: guideline
-- id: skill.adk_mcp.tool_library.filesystem
-- last_checked: 2026-02-24
-<!-- content -->
 Install: `npx -y @modelcontextprotocol/server-filesystem <absolute_path>`
 
 Provides secure file-system access, sandboxed to the directories you pass as arguments.
@@ -261,11 +203,6 @@ Provides secure file-system access, sandboxed to the directories you pass as arg
 | 13 | `list_allowed_directories` | Lists all top-level directories the server is permitted to access (as configured at startup). |
 
 ### Git Server (`@modelcontextprotocol/server-git` via `uvx mcp-server-git`)
-- status: active
-- type: guideline
-- id: skill.adk_mcp.tool_library.git
-- last_checked: 2026-02-24
-<!-- content -->
 Install: `uvx mcp-server-git --repository <path>`
 
 Provides read and write access to a local Git repository. All tools accept `repo_path` as their first argument.
@@ -286,11 +223,6 @@ Provides read and write access to a local Git repository. All tools accept `repo
 | 25 | `git_branch` | Lists local or remote branches, with optional filters by content. |
 
 ### Memory Server (`@modelcontextprotocol/server-memory`)
-- status: active
-- type: guideline
-- id: skill.adk_mcp.tool_library.memory
-- last_checked: 2026-02-24
-<!-- content -->
 Install: `npx -y @modelcontextprotocol/server-memory`
 
 Provides a persistent, session-spanning knowledge graph. Entities (nodes) and relations (edges) are stored across turns, giving the agent long-term memory.
@@ -308,11 +240,6 @@ Provides a persistent, session-spanning knowledge graph. Entities (nodes) and re
 | 34 | `delete_relations` | Removes specific directed relationships from the graph. |
 
 ### Fetch Server (`@modelcontextprotocol/server-fetch`)
-- status: active
-- type: guideline
-- id: skill.adk_mcp.tool_library.fetch
-- last_checked: 2026-02-24
-<!-- content -->
 Install: `uvx mcp-server-fetch`
 
 Retrieves web content and converts it to a format optimised for LLM consumption (Markdown).
@@ -322,11 +249,6 @@ Retrieves web content and converts it to a format optimised for LLM consumption 
 | 35 | `fetch` | Fetches a URL and returns its content as Markdown (HTML stripped). Supports `max_length` and `start_index` for pagination through large pages. |
 
 ### Google Maps Server (`@modelcontextprotocol/server-google-maps`)
-- status: active
-- type: guideline
-- id: skill.adk_mcp.tool_library.google_maps
-- last_checked: 2026-02-24
-<!-- content -->
 Install: `npx -y @modelcontextprotocol/server-google-maps`
 Requires: `GOOGLE_MAPS_API_KEY` in environment.
 
@@ -341,11 +263,6 @@ Requires: `GOOGLE_MAPS_API_KEY` in environment.
 | 42 | `maps_elevation` | Returns the elevation above sea level for one or more geographic coordinates. |
 
 ## 7. Multi-Server Agent Example
-- status: active
-- type: guideline
-- id: skill.adk_mcp.multi_server_example
-- last_checked: 2026-02-24
-<!-- content -->
 An agent can combine multiple `McpToolset` instances alongside plain Python tools:
 
 ```python
@@ -401,18 +318,8 @@ root_agent = LlmAgent(
 ```
 
 ## 8. Deployment Patterns
-- status: active
-- type: guideline
-- id: skill.adk_mcp.deployment
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Pattern 1 — Self-Contained Stdio (Development / Docker)
-- status: active
-- type: guideline
-- id: skill.adk_mcp.deployment.stdio
-- last_checked: 2026-02-24
-<!-- content -->
 The MCP server is bundled inside the same container as the ADK agent and spawned as a subprocess.
 
 - Use `StdioConnectionParams`.
@@ -420,11 +327,6 @@ The MCP server is bundled inside the same container as the ADK agent and spawned
 - Best for single-tenant workloads and local development.
 
 ### Pattern 2 — Remote HTTP/SSE Server (Cloud Run / Vertex AI)
-- status: active
-- type: guideline
-- id: skill.adk_mcp.deployment.sse
-- last_checked: 2026-02-24
-<!-- content -->
 The MCP server runs as an independent, scalable Cloud Run service. Many agent instances share one server.
 
 - Use `SseConnectionParams` with the service URL.
@@ -433,11 +335,6 @@ The MCP server runs as an independent, scalable Cloud Run service. Many agent in
 - Deploy the ADK agent with: `adk deploy cloud_run --project=<id> --region=<region> --service_name=<name>`
 
 ### Pattern 3 — Kubernetes Sidecar
-- status: active
-- type: guideline
-- id: skill.adk_mcp.deployment.sidecar
-- last_checked: 2026-02-24
-<!-- content -->
 The MCP server runs as a **sidecar container** in the same Kubernetes pod as the ADK agent.
 
 - Both containers share a network namespace; use `localhost` as the MCP server URL.
@@ -445,11 +342,6 @@ The MCP server runs as a **sidecar container** in the same Kubernetes pod as the
 - Provides isolation without the overhead of a separate network service.
 
 ## 9. Security Best Practices
-- status: active
-- type: guideline
-- id: skill.adk_mcp.security
-- last_checked: 2026-02-24
-<!-- content -->
 | Risk | Mitigation |
 | :--- | :--- |
 | LLM calls destructive tools | Always use `tool_filter` — only expose exactly what the agent needs. |
@@ -460,11 +352,6 @@ The MCP server runs as a **sidecar container** in the same Kubernetes pod as the
 | Over-permissive filesystem | Sandbox to the smallest necessary directory; prefer read-only `tool_filter` sets where writes are not needed. |
 
 ## 10. Troubleshooting
-- status: active
-- type: guideline
-- id: skill.adk_mcp.troubleshooting
-- last_checked: 2026-02-24
-<!-- content -->
 
 | Symptom | Likely cause | Fix |
 | :--- | :--- | :--- |

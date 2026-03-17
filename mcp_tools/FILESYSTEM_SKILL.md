@@ -1,20 +1,17 @@
 # Filesystem MCP Skill — Architecture & Implementation Guide
 - status: active
-- type: agent_skill
+- type: how-to
 - id: mcp_tools.filesystem_skill
-- last_checked: 2026-02-24
-- label: [guide, reference, backend]
+- label: [backend, skill]
+- injection: procedural
+- volatility: evolving
+- last_checked: 2026-03-17
 <!-- content -->
 This document describes the architecture, implementation, and usage of the `filesystem_assistant_agent` — an ADK agent that uses the **Model Context Protocol (MCP)** to manage files inside a sandboxed workspace, without writing a single hand-coded Python tool.
 
 It serves as the canonical worked example for MCP tool integration in this repository.
 
 ## Architecture Overview
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.architecture
-- last_checked: 2026-02-24
-<!-- content -->
 The agent follows the **ADK MCP client-server pattern**:
 
 ```
@@ -51,11 +48,6 @@ The agent follows the **ADK MCP client-server pattern**:
 - The workspace path is resolved to an absolute path at import time, so the agent is location-independent.
 
 ## File Structure
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.file_structure
-- last_checked: 2026-02-24
-<!-- content -->
 ```
 mcp_tools/
 ├── __init__.py                 # Python package marker
@@ -68,7 +60,6 @@ mcp_tools/
 ```
 
 ### Role of Each File
-
 | File | Role |
 | :--- | :--- |
 | `imports.py` | Single source of truth for all ADK and MCP class imports |
@@ -77,18 +68,8 @@ mcp_tools/
 | `.env` | Provides `GOOGLE_API_KEY` — never commit this file |
 
 ## Implementation
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.implementation
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Step 1 — Centralized Imports (`imports.py`)
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.implementation.imports
-- last_checked: 2026-02-24
-<!-- content -->
 All ADK and MCP classes are imported once and re-exported from `imports.py`. Agent files consume only from this module.
 
 ```python
@@ -111,11 +92,6 @@ from mcp import StdioServerParameters
 This pattern means: if a module path ever changes in a future ADK release, you fix it in **one place**.
 
 ### Step 2 — Workspace Path Resolution (`agent.py`)
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.implementation.workspace_path
-- last_checked: 2026-02-24
-<!-- content -->
 The MCP filesystem server **requires an absolute path**. We derive it at module load time relative to `agent.py`, so the agent is portable across machines and working directories:
 
 ```python
@@ -127,11 +103,6 @@ WORKSPACE_PATH = os.path.abspath(
 ```
 
 ### Step 3 — Agent & McpToolset Definition (`agent.py`)
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.implementation.agent_definition
-- last_checked: 2026-02-24
-<!-- content -->
 ```python
 from .imports import LlmAgent, McpToolset, StdioConnectionParams, StdioServerParameters
 
@@ -166,11 +137,6 @@ root_agent = LlmAgent(
 **Why `tool_filter` matters**: the `@modelcontextprotocol/server-filesystem` package exposes more tools than these four (e.g. `move_file`, `delete_file`). Restricting the list keeps the LLM context small and prevents unintended destructive operations.
 
 ## Available Tools
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.available_tools
-- last_checked: 2026-02-24
-<!-- content -->
 The agent has access to exactly four MCP-provided tools:
 
 | Tool (MCP name) | What it does |
@@ -183,18 +149,8 @@ The agent has access to exactly four MCP-provided tools:
 All paths are interpreted **relative to `workspace/`** by the MCP server — the agent cannot escape the sandbox.
 
 ## Example Interactions
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.examples
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Example 1 — List the workspace
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.examples.list
-- last_checked: 2026-02-24
-<!-- content -->
 **User:** What files are in the workspace?
 
 **Agent behaviour:**
@@ -209,11 +165,6 @@ The workspace contains:
 ```
 
 ### Example 2 — Read a file
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.examples.read
-- last_checked: 2026-02-24
-<!-- content -->
 **User:** Read hello.txt for me.
 
 **Agent behaviour:**
@@ -222,11 +173,6 @@ The workspace contains:
 3. Agent displays the text.
 
 ### Example 3 — Create a new file
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.examples.write
-- last_checked: 2026-02-24
-<!-- content -->
 **User:** Create a file called notes.txt with the content "Meeting at 3pm".
 
 **Agent behaviour:**
@@ -235,11 +181,6 @@ The workspace contains:
 3. Agent confirms creation.
 
 ### Example 4 — Organise files into folders
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.examples.organise
-- last_checked: 2026-02-24
-<!-- content -->
 **User:** Create a folder called "archive" and move hello.txt into it by writing a copy there.
 
 **Agent behaviour:**
@@ -251,28 +192,13 @@ The workspace contains:
 > Note: `move_file` is excluded from `tool_filter`, so the agent recreates the file manually — a deliberate safety trade-off.
 
 ## Running the Agent
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.running
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Prerequisites
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.running.prerequisites
-- last_checked: 2026-02-24
-<!-- content -->
 1. Python virtual environment activated with `google-adk` installed.
 2. `GOOGLE_API_KEY` set in `mcp_tools/.env`.
 3. Node.js ≥ 18 and `npx` available on `$PATH` (verify: `node --version`).
 
 ### Web UI (recommended)
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.running.web
-- last_checked: 2026-02-24
-<!-- content -->
 ```bash
 # From the repository root
 source .venv/bin/activate
@@ -283,19 +209,9 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000), select **mcp_tools** from t
 The MCP server subprocess is spawned automatically on the first tool call. There is no separate server start step.
 
 ### CLI (quick test)
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.running.cli
-- last_checked: 2026-02-24
-<!-- content -->
 ```bash
 adk run mcp_tools
 ```
 
 ### Hot-reload caveat
-- status: active
-- type: documentation
-- id: mcp_tools.filesystem_skill.running.hot_reload
-- last_checked: 2026-02-24
-<!-- content -->
 If you edit `agent.py` or `imports.py`, restart `adk web` to pick up the changes. The MCP server subprocess is re-spawned automatically on the next session.

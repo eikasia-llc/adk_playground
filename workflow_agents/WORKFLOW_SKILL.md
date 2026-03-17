@@ -1,9 +1,11 @@
 # Workflow Agents Skill — Architecture & Implementation Guide
 - status: active
-- type: agent_skill
+- type: how-to
 - id: workflow_agents.workflow_skill
-- last_checked: 2026-02-24
-- label: [guide, reference, backend]
+- label: [backend, skill]
+- injection: procedural
+- volatility: evolving
+- last_checked: 2026-03-17
 <!-- content -->
 This document describes the architecture, implementation, and usage of the `report_pipeline_agent` — an ADK agent that uses all **three workflow agent types** (SequentialAgent, ParallelAgent, LoopAgent) to generate a polished research report on any user-supplied topic.
 
@@ -12,11 +14,6 @@ It is the canonical worked example for workflow agent composition in this reposi
 Reference: https://google.github.io/adk-docs/agents/workflow-agents/
 
 ## What Are Workflow Agents?
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.overview
-- last_checked: 2026-02-24
-<!-- content -->
 Workflow agents are specialized ADK agents that control the **execution flow** of other agents using predefined, deterministic logic — **without using an LLM** for the flow control itself. Their sub-agents can be any agent type, including `LlmAgent` instances.
 
 | Agent | Execution pattern | Use when… |
@@ -37,11 +34,6 @@ WorkflowAgent(
 ```
 
 ## Architecture Overview
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.architecture
-- last_checked: 2026-02-24
-<!-- content -->
 The pipeline is orchestrated by a top-level `SequentialAgent` that chains three phases in strict order:
 
 ```
@@ -93,11 +85,6 @@ The pipeline is orchestrated by a top-level `SequentialAgent` that chains three 
 | Phase 3 each iteration | `review_notes` (updated), `draft` (updated) |
 
 ## File Structure
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.file_structure
-- last_checked: 2026-02-24
-<!-- content -->
 ```
 workflow_agents/
 ├── __init__.py                # Python package marker
@@ -111,18 +98,8 @@ workflow_agents/
 ```
 
 ## The Three Workflow Agents in Detail
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.agent_types
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### SequentialAgent
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.agent_types.sequential
-- last_checked: 2026-02-24
-<!-- content -->
 Runs sub-agents **strictly in order**, one at a time. All sub-agents share the same `InvocationContext`, meaning session state written by step N is immediately readable by step N+1.
 
 ```python
@@ -151,11 +128,6 @@ pipeline = SequentialAgent(name='pipe', sub_agents=[step_a, step_b])
 ```
 
 ### ParallelAgent
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.agent_types.parallel
-- last_checked: 2026-02-24
-<!-- content -->
 Runs sub-agents **concurrently**. All branches start at approximately the same time and run independently.
 
 ```python
@@ -184,11 +156,6 @@ SequentialAgent
 ```
 
 ### LoopAgent
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.agent_types.loop
-- last_checked: 2026-02-24
-<!-- content -->
 Repeatedly runs its sub-agents in order until a **termination condition** is met.
 
 ```python
@@ -237,18 +204,8 @@ reviewer_agent = LlmAgent(
 - Always set `max_iterations` as a safety cap in case the reviewer never calls `exit_loop`.
 
 ## Implementation Walkthrough
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.implementation
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Imports (`imports.py`)
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.implementation.imports
-- last_checked: 2026-02-24
-<!-- content -->
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -258,11 +215,6 @@ from google.adk.tools import ToolContext  # needed for exit_loop tool
 ```
 
 ### Naming Conventions
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.implementation.naming
-- last_checked: 2026-02-24
-<!-- content -->
 | Element | Convention | Example |
 | :--- | :--- | :--- |
 | All agent variables | `<role>_agent` | `drafting_agent`, `reviewer_agent` |
@@ -272,11 +224,6 @@ from google.adk.tools import ToolContext  # needed for exit_loop tool
 | Loop control tool | `exit_loop` | always this name — it is self-documenting |
 
 ### output_key & State Flow
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.implementation.output_key
-- last_checked: 2026-02-24
-<!-- content -->
 `output_key` is an `LlmAgent` parameter. When set, ADK stores the agent's last text response into `session.state[output_key]` after it finishes.
 
 Any downstream agent in the same `InvocationContext` can read this value via a `{key}` placeholder in its `instruction` string. ADK resolves placeholders at runtime, just before calling the LLM.
@@ -289,18 +236,8 @@ LlmAgent(instruction="Revise: {draft}")
 ```
 
 ## Example Interactions
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.examples
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Example 1 — Generate a report on a technology topic
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.examples.technology
-- last_checked: 2026-02-24
-<!-- content -->
 **User:** Write me a research report on transformer neural networks.
 
 **Pipeline execution:**
@@ -310,47 +247,22 @@ LlmAgent(instruction="Revise: {draft}")
 4. The final `draft` in session state is returned to the user.
 
 ### Example 2 — Scientific topic with many limitations
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.examples.science
-- last_checked: 2026-02-24
-<!-- content -->
 **User:** Write a report on CRISPR gene editing.
 
 **Expected loop behaviour:** The first draft may have weak coverage of ethical debates. The `reviewer_agent` will note this. The `editor_agent` expands the Challenges section. On the next iteration, the reviewer approves and calls `exit_loop` after iteration 2.
 
 ### Example 3 — Short topic, fast approval
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.examples.short
-- last_checked: 2026-02-24
-<!-- content -->
 **User:** Write a report on the TCP/IP protocol.
 
 **Expected loop behaviour:** A well-defined technical topic with clear structure. The `reviewer_agent` may approve on the **first iteration**, calling `exit_loop` immediately. The loop runs only once.
 
 ## Running the Agent
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.running
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Prerequisites
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.running.prerequisites
-- last_checked: 2026-02-24
-<!-- content -->
 1. Python virtual environment activated with `google-adk` installed.
 2. `GOOGLE_API_KEY` set in `workflow_agents/.env`.
 
 ### Web UI (recommended)
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.running.web
-- last_checked: 2026-02-24
-<!-- content -->
 ```bash
 source .venv/bin/activate
 adk web --port 8000
@@ -358,21 +270,11 @@ adk web --port 8000
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000), select **workflow_agents** from the dropdown, then type any topic to generate a report.
 
 ### CLI
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.running.cli
-- last_checked: 2026-02-24
-<!-- content -->
 ```bash
 adk run workflow_agents
 ```
 
 ### What to expect in the ADK Web UI
-- status: active
-- type: documentation
-- id: workflow_agents.workflow_skill.running.ui_behaviour
-- last_checked: 2026-02-24
-<!-- content -->
 The ADK Web UI shows each sub-agent's execution as a nested trace. You will see:
 - Three parallel branches under `research_phase_agent` running simultaneously.
 - `drafting_agent` start only after all three parallel branches complete.

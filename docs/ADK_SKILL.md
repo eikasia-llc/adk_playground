@@ -1,20 +1,17 @@
 # Google ADK Implementation Skill
 - status: active
-- type: agent_skill
+- type: how-to
 - id: skill.adk_implementation
-- last_checked: 2026-02-24
-- label: [agent, guide, infrastructure]
+- label: [agent, infrastructure]
+- injection: procedural
+- volatility: evolving
+- last_checked: 2026-03-17
 <!-- content -->
 This document serves as the primary implementation guideline and playbook for building, scaffolding, and integrating Google's Agent Development Kit (ADK) into projects. 
 
 [ADK](https://google.github.io/adk-docs/) is a Python-first framework (with support for TS, Go, Java) designed to build model-agnostic, easily orchestratable AI agents using standard software engineering patterns instead of obscure prompting frameworks.
 
 ## 0. ADK Skill Map
-- status: active
-- type: guideline
-- id: skill.adk_implementation.skill_map
-- last_checked: 2026-02-24
-<!-- content -->
 The ADK knowledge base is split across several specialized files. Use this map to navigate to the right document.
 
 **Core skill documents** (in `docs/`):
@@ -37,12 +34,6 @@ The ADK knowledge base is split across several specialized files. Use this map t
 **Reading order for new users:** `ADK_SKILL.md` → `ADK_TOOLS_SKILL.md` → `ADK_MCP_SKILL.md` → `ADK_WORKFLOW_SKILL.md`
 
 ## 1. Creating an ADK Project From Scratch
-- status: active
-- type: guideline
-- id: skill.adk_implementation.creating_project
-- last_checked: 2026-02-24
-- label: [infrastructure]
-<!-- content -->
 When starting a completely new, agent-first project, follow this standard initialization sequence:
 
 1. **Virtual Environment**: Keep dependencies isolated.
@@ -63,12 +54,6 @@ When starting a completely new, agent-first project, follow this standard initia
    *Select `Google AI` (Gemini API) or `Vertex AI` backend. Opt for `gemini-2.5-flash` as a fast default.*
 
 ## 2. Integrating ADK into Existing Projects
-- status: active
-- type: guideline
-- id: skill.adk_implementation.integrating_adk
-- last_checked: 2026-02-24
-- label: [infrastructure]
-<!-- content -->
 If a repository already has existing application code (e.g., a React frontend, an Express backend), you must integrate ADK without polluting the existing structure.
 
 **Convention: The Isolated Agent Directory**
@@ -79,20 +64,9 @@ Do not build ADK agents in the root of an existing app. Create a dedicated folde
 3. Set up a local `requirements.txt` specifically for the agent isolated from the main app's `package.json` or other setups.
 
 ## 3. Implementation Conventions & Tricks
-- status: active
-- type: guideline
-- id: skill.adk_implementation.conventions_and_tricks
-- last_checked: 2026-02-24
-- label: [core]
-<!-- content -->
 To ensure ADK applications scale cleanly, adhere to these battle-tested conventions:
 
 ### The `imports.py` Centralization Pattern
-- status: active
-- type: guideline
-- id: skill.adk_implementation.conventions_and_tricks.imports_py
-- last_checked: 2026-02-24
-<!-- content -->
 **Problem**: The `google.adk` package is massive. Importing specific classes ([`LlmAgent`](https://google.github.io/adk-docs/agents/), [`SequentialAgent`](https://google.github.io/adk-docs/agents/workflows/), `BaseAgent`) across dozens of files creates brittle references.
 
 **Solution**: Create an `imports.py` file alongside your main `agent.py`.
@@ -109,33 +83,17 @@ from .imports import LlmAgent, SequentialAgent
 ```
 
 ### Tool Definition Separation
-- status: active
-- type: guideline
-- id: skill.adk_implementation.conventions_and_tricks.tool_definition_separation
-- last_checked: 2026-02-24
-<!-- content -->
 Do not define complex action functions ([Tools](https://google.github.io/adk-docs/tools/)) directly inside `agent.py`. 
 1. Create a `tools/` directory.
 2. Group related tools into files (e.g., `tools/time_tools.py`, `tools/db_tools.py`).
 3. Import the specific functions into `agent.py` and append them to the `tools=[...]` array during Agent initialization.
 
 ### Environment & Secrets Management
-- status: active
-- type: guideline
-- id: skill.adk_implementation.conventions_and_tricks.environment_and_secrets
-- last_checked: 2026-02-24
-<!-- content -->
 ADK applications inherently rely on standard `.env` variables (like `GOOGLE_API_KEY`).
 1. **Never commit `.env`**: Always ensure `.env` and `*.env` are in `.gitignore`.
 2. **Execution Context**: The `adk web` and `adk run` commands (see [CLI documentation](https://google.github.io/adk-docs/cli/)) automatically look for the `.env` file in the folder where the agent lives (e.g., `my_new_agent/.env`).
 
 ## 4. Execution & Testing
-- status: active
-- type: guideline
-- id: skill.adk_implementation.execution_and_testing
-- last_checked: 2026-02-24
-- label: [infrastructure]
-<!-- content -->
 [ADK comes with two built-in runners](https://google.github.io/adk-docs/cli/) that hot-reload differently:
 - **CLI Runner** (`adk run <agent_folder>`): Interactive terminal.
 - **Web Runner** (`adk web --port 8000` from project root): Provides a chat GUI at `localhost:8000`. 
@@ -143,22 +101,11 @@ ADK applications inherently rely on standard `.env` variables (like `GOOGLE_API_
 **Critical Trick for Web Runner**: If you change the underlying Python tool implementations (e.g., changing how a function fetches data), the `adk web` background process *may not instantly hot-reload* the tool logic. You must terminate and restart the web server to guarantee new Python tool logic is picked up.
 
 ## 5. MCP (Model Context Protocol) Tool Integration
-- status: active
-- type: guideline
-- id: skill.adk_implementation.mcp_tools
-- last_checked: 2026-02-24
-- label: [infrastructure, core]
-<!-- content -->
 ADK agents can delegate tool execution to external **MCP servers** — processes that expose capabilities (file I/O, database queries, web search, etc.) over a standard protocol. The `McpToolset` class acts as the bridge.
 
 Reference: https://google.github.io/adk-docs/tools-custom/mcp-tools/
 
 ### Architecture: Client-Server Pattern
-- status: active
-- type: guideline
-- id: skill.adk_implementation.mcp_tools.architecture
-- last_checked: 2026-02-24
-<!-- content -->
 ```
 LlmAgent
   └── tools=[McpToolset]
@@ -175,11 +122,6 @@ LlmAgent
 5. **Proxy** — routes the LLM's tool-call requests to the server and returns results.
 
 ### Import Conventions
-- status: active
-- type: guideline
-- id: skill.adk_implementation.mcp_tools.imports
-- last_checked: 2026-02-24
-<!-- content -->
 Add the following block to the agent's `imports.py` (do **not** scatter these across files):
 
 ```python
@@ -198,11 +140,6 @@ from .imports import LlmAgent, McpToolset, StdioConnectionParams, StdioServerPar
 ```
 
 ### Connection Parameter Types
-- status: active
-- type: guideline
-- id: skill.adk_implementation.mcp_tools.connection_types
-- last_checked: 2026-02-24
-<!-- content -->
 | Class | When to use |
 | :--- | :--- |
 | `StdioConnectionParams` | Local dev, Docker containers, bundled MCP servers launched via `npx` or a binary |
@@ -226,11 +163,6 @@ McpToolset(
 ```
 
 ### Naming Conventions
-- status: active
-- type: guideline
-- id: skill.adk_implementation.mcp_tools.naming
-- last_checked: 2026-02-24
-<!-- content -->
 Follow these conventions to keep multi-agent and multi-tool architectures readable:
 
 | Element | Convention | Example |
@@ -241,11 +173,6 @@ Follow these conventions to keep multi-agent and multi-tool architectures readab
 | Workspace path constant | `WORKSPACE_PATH` (module-level) | `WORKSPACE_PATH = os.path.abspath(...)` |
 
 ### Tool Filter Best Practice
-- status: active
-- type: guideline
-- id: skill.adk_implementation.mcp_tools.tool_filter
-- last_checked: 2026-02-24
-<!-- content -->
 Always provide an explicit `tool_filter` list. MCP servers can expose many tools; exposing all of them:
 - Increases token usage (all schemas go into the LLM context).
 - Widens the attack surface (the LLM could invoke destructive operations unintentionally).
@@ -253,29 +180,13 @@ Always provide an explicit `tool_filter` list. MCP servers can expose many tools
 Only list the tools the agent actually needs for its stated purpose.
 
 ### Deployment Note
-- status: active
-- type: guideline
-- id: skill.adk_implementation.mcp_tools.deployment
-- last_checked: 2026-02-24
-<!-- content -->
 For cloud deployments (Cloud Run, GKE, Vertex AI Agent Engine), `McpToolset` and the agent **must be defined synchronously** in `agent.py`. Async factory patterns are not supported in those environments.
 
 ### Prerequisites
-- status: active
-- type: guideline
-- id: skill.adk_implementation.mcp_tools.prerequisites
-- last_checked: 2026-02-24
-<!-- content -->
 For npm-based MCP servers (like `@modelcontextprotocol/server-filesystem`):
 - Node.js and `npx` must be installed and on `$PATH`.
 - Verify with `node --version` and `npx --version` before running `adk web` or `adk run`.
 ## 6. Token Optimization & Cost Efficiency
-- status: active
-- type: guideline
-- id: skill.adk_implementation.tokenopt
-- last_checked: 2026-03-03
-- label: [infrastructure]
-<!-- content -->
 When designing prompts, configuring agents, and supplying tool contexts, token efficiency is critical. Agents MUST follow these basic principles (see `TOKENOPT_SKILL.md` for deep dive):
 
 1.  **Model Selection**: Default to `gemini-2.5-flash` for all data orchestration, parsing, and structured extraction. Reserve `gemini-2.5-pro` for deep reasoning, architectural planning, or complex creative inference.

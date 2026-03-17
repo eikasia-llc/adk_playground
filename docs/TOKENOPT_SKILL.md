@@ -1,28 +1,20 @@
 # Token Optimization Skill
-- id: tokenopt_skill
 - status: active
-- type: agent_skill
-- last_checked: 2026-03-02
-- label: [agent, guide, core]
+- type: how-to
+- id: tokenopt_skill
+- label: [agent, core]
+- injection: directive
+- volatility: evolving
+- last_checked: 2026-03-17
 <!-- content -->
 This document outlines critical guardrails and techniques that all AI Agents operating on this repository must enforce when designing prompts, building API payloads, or writing automation scripts. Due to the high volume of text data processed in this project (e.g., hundreds of parsed semantic chapters), inefficient token usage can result in catastrophic API cost overruns.
 
 Token optimization operates across three dimensions: **input tokens** (what you send), **output tokens** (what the model generates), and **infrastructure** (how you route, cache, and batch). Every script touching the `google.genai` SDK must address all three.
 
 ## Core Optimization Principles
-- id: tokenopt_skill.core_optimization_principles
-- status: active
-- type: context
-- last_checked: 2026-03-02
-<!-- content -->
 When writing Python scripts that invoke `google.genai` or when formulating prompts, agents must adhere to the following rules:
 
 ### 1. Payload Minification (JSON Serialization)
-- id: tokenopt_skill.core_optimization_principles.payload_minification
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Never inject "pretty-printed" JSON or heavily formatted dictionaries into an LLM prompt.
 
 **Why**: Formatting parameters like `indent=2` or `indent=4` inject thousands of meaningless space characters, tabs, and newlines into the prompt. LLMs tokenize these whitespace characters, artificially inflating the context window and the resulting cost by 20% to 30%.
@@ -47,11 +39,6 @@ prompt = f"Align this data:\n{json.dumps(data, separators=(',', ':'))}"
 - Strip `null` or empty fields from JSON objects before injection. Keys with no meaningful value still consume tokens.
 
 ### 2. Model Selection (Cost-to-Reasoning Ratio)
-- id: tokenopt_skill.core_optimization_principles.model_selection
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Default to lightweight, fast models (e.g., `gemini-2.5-flash`) for structural parsing, metadata extraction, semantic mapping, and data formatting.
 
 **Why**: Reasoning models like `gemini-2.5-pro` cost significantly more (often 10x to 15x higher per million tokens). Structural alignment tasks (like zipping arrays or mapping known entities) do not require deep logical reasoning or world knowledge.
@@ -86,11 +73,6 @@ response = client.models.generate_content(
 ```
 
 ### 3. Prompt Verbosity
-- id: tokenopt_skill.core_optimization_principles.prompt_verbosity
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Eliminate conversational filler from `SYSTEM_PROMPT` strings inside scripts.
 
 **Why**: Instructing the model with "Please take a look at the following data and tell me what you think..." adds redundant tokens.
@@ -123,11 +105,6 @@ SYSTEM_PROMPT = (
 ```
 
 ### 4. Output Token Control
-- id: tokenopt_skill.core_optimization_principles.output_token_control
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Always set `max_output_tokens` to the minimum value that covers your expected response size. Never leave it at the default.
 
 **Why**: Output tokens are typically 3x to 5x more expensive than input tokens. An unconstrained model may generate verbose explanations, preambles, or markdown formatting that you never use. Excess output tokens are the single largest source of hidden cost.
@@ -151,11 +128,6 @@ response = client.models.generate_content(
 **Instruct the model to be concise in the prompt itself**: Pair `max_output_tokens` with an explicit instruction like `"Respond with JSON only. No preamble."` to prevent the model from wasting output tokens on natural-language wrapping.
 
 ### 5. Structured Output Schemas
-- id: tokenopt_skill.core_optimization_principles.structured_output
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: When you expect JSON or structured data back, use the API's native structured output mode (`response_mime_type` + `response_json_schema`) instead of asking the model in prose to return JSON.
 
 **Why**: Native structured output eliminates wasted tokens on markdown fences, preambles ("Here is the JSON..."), and malformed responses that require retries. It also enforces the schema server-side, preventing hallucinated fields.
@@ -191,19 +163,9 @@ data = AlignmentResponse.model_validate_json(response.text)
 **Benefits**: Eliminates retry loops caused by malformed JSON. Reduces output tokens by removing prose wrapping. Makes downstream parsing deterministic.
 
 ## Data Preparation Techniques
-- id: tokenopt_skill.data_preparation
-- status: active
-- type: context
-- last_checked: 2026-03-02
-<!-- content -->
 Before data reaches a prompt, it should be preprocessed to minimize token footprint.
 
 ### 6. Field Pruning and Flattening
-- id: tokenopt_skill.data_preparation.field_pruning
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Only include fields in the prompt payload that the model actually needs for the task. Strip all metadata, internal IDs, timestamps, and nested structures that are irrelevant.
 
 **Why**: Deeply nested JSON creates significant overhead from repeated keys and braces. Flattening a 3-level nested object to a flat record can reduce token count by 50% to 70%.
@@ -233,11 +195,6 @@ record_slim = {
 - For repeated structures (e.g., 530 chapters), even saving 5 tokens per record saves 2,650 tokens per batch.
 
 ### 7. Numerical Precision Reduction
-- id: tokenopt_skill.data_preparation.precision_reduction
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Round floating-point numbers to the minimum precision required for the task before injecting them into prompts.
 
 **Why**: A number like `0.8734521` tokenizes into more tokens than `0.87`. Across thousands of records, precision-aware formatting can reduce numerical token consumption by 30% to 40%.
@@ -252,11 +209,6 @@ data["count"] = int(data["count"])
 ```
 
 ### 8. Format Selection by Task
-- id: tokenopt_skill.data_preparation.format_selection
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Choose the most token-efficient serialization format for the data type being sent.
 
 **Format Efficiency Ranking** (most to least efficient for tabular data):
@@ -284,19 +236,9 @@ prompt = f"Align the following verses:\n{records_to_csv(slim_records)}"
 ```
 
 ## Infrastructure Optimization
-- id: tokenopt_skill.infrastructure
-- status: active
-- type: context
-- last_checked: 2026-03-02
-<!-- content -->
 Beyond prompt-level optimization, infrastructure-level strategies can yield dramatic cost reductions by avoiding redundant computation entirely.
 
 ### 9. Context Caching
-- id: tokenopt_skill.infrastructure.context_caching
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: When the same large context (system instructions, reference documents, datasets) is reused across multiple API calls, use Gemini's explicit context caching to avoid re-sending and re-processing those tokens.
 
 **Why**: Cached tokens cost only 10% of standard input token price on Gemini 2.5+ models (a 90% discount). For a workflow that sends the same 50,000-token reference document with 100 different queries, caching saves ~4.5 million redundant input tokens.
@@ -341,11 +283,6 @@ for query in alignment_queries:
 - Implicit caching is enabled by default on Gemini 2.5+ models and provides automatic savings when prompts share a common prefix. Place static content (system instructions, reference data) at the **beginning** of the prompt to maximize implicit cache hits.
 
 ### 10. Batch API
-- id: tokenopt_skill.infrastructure.batch_api
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: For non-latency-critical workloads (dataset processing, evaluations, bulk generation), use the Gemini Batch API instead of synchronous calls.
 
 **Why**: Batch API is priced at 50% of the standard interactive API cost. Combined with implicit caching within batches, savings can compound significantly. It also provides higher rate limits and eliminates the need for client-side queuing or retry logic.
@@ -391,11 +328,6 @@ batch_job = client.batches.create(
 **Batch + Cache Synergy**: Context caching works within batch requests. If all requests in a batch share a common prefix (e.g., the same system prompt and reference data), implicit caching triggers automatically, stacking the 90% cache discount on top of the 50% batch discount.
 
 ### 11. Local Response Caching
-- id: tokenopt_skill.infrastructure.local_caching
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Cache API responses locally (file-based or in-memory) to prevent re-processing identical inputs during development, debugging, or re-runs.
 
 **Why**: During development, scripts are often run multiple times against the same data. Without local caching, every re-run sends the same tokens and incurs the same cost. A simple hash-based file cache eliminates this entirely.
@@ -436,11 +368,6 @@ def get_cached_or_call(prompt: str, model: str, call_fn) -> str:
 **When to Invalidate**: Clear the cache directory when the prompt template changes, the model version is updated, or the underlying data is modified.
 
 ### 12. Semantic Caching (Vector-Based)
-- id: tokenopt_skill.infrastructure.semantic_caching
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: For user-facing or RAG-based workflows where different users ask semantically equivalent questions in different words, implement a semantic cache that matches queries by meaning (vector similarity) rather than by exact string.
 
 **Why**: Local hash-based caching (Rule #11) only catches *identical* prompts. But in practice, queries like `"What does Genesis 1:1 say in Ayoreo?"` and `"Translate the first verse of Genesis to Ayoreo"` have the same intent and should return the same cached response. A semantic cache converts queries into vector embeddings and uses cosine similarity to find matches, eliminating redundant LLM calls even when the wording varies. Production systems report cache hit rates of 50% to 67% on real workloads, with latency dropping from seconds to milliseconds on hits.
@@ -603,19 +530,9 @@ Start at 0.92, log all cache hits with their similarity scores, and review hits 
 - **Selective**: If a specific translation is corrected, remove only the affected entries rather than clearing the entire cache.
 
 ## Prompt Architecture Patterns
-- id: tokenopt_skill.prompt_architecture
-- status: active
-- type: context
-- last_checked: 2026-03-02
-<!-- content -->
 How you structure multi-turn and multi-step workflows has a direct impact on cumulative token cost.
 
 ### 13. Conversation History Compression
-- id: tokenopt_skill.prompt_architecture.conversation_compression
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: In multi-turn workflows, compress or summarize prior conversation turns instead of sending the full raw history with every request.
 
 **Why**: Token cost scales linearly with conversation length. A 20-turn conversation where each turn averages 500 tokens means the 20th request sends ~10,000 tokens of history — most of which is redundant context. Summarizing prior turns into a compact state object keeps the context window lean.
@@ -641,11 +558,6 @@ def compress_history(turns: list[dict], max_recent: int = 3) -> str:
 ```
 
 ### 14. Chunking Strategy for Large Datasets
-- id: tokenopt_skill.prompt_architecture.chunking_strategy
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: When processing datasets that exceed the context window, use semantic chunking rather than arbitrary fixed-size splits.
 
 **Why**: Fixed-size chunking (e.g., "every 50 records") often splits semantically related records across chunks, forcing the model to re-process context or miss cross-references. Semantic chunking groups related records (e.g., by book, chapter, or topic), preserving coherence and reducing the need for overlap tokens between chunks.
@@ -673,11 +585,6 @@ def chunk_by_book(records: list[dict]) -> list[list[dict]]:
 **Token Budget Estimation**: Use the approximation of ~3.5 characters per token for English text and ~4 characters per token for Spanish. For Ayoreo text, benchmark a sample to establish the ratio since low-resource languages may tokenize differently.
 
 ### 15. Tool and Instruction Pruning
-- id: tokenopt_skill.prompt_architecture.tool_pruning
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: When using function calling or tool definitions, include only the tools relevant to the current task in each request. Do not pass the full tool registry every time.
 
 **Why**: Every tool definition (name, description, parameter schema) gets tokenized as part of the input. If you define 20 tools but only 2 are relevant to the current query, you are paying for 18 unused tool descriptions on every call. For complex schemas, this overhead can be 500+ tokens per unused tool.
@@ -707,19 +614,9 @@ response = client.models.generate_content(
 Similarly, conditionally include system prompt sections. If a section like "When using the translation tool..." is only relevant when the translation tool is active, do not include it in requests that do not involve translation.
 
 ## Monitoring and Cost Tracking
-- id: tokenopt_skill.monitoring
-- status: active
-- type: context
-- last_checked: 2026-03-02
-<!-- content -->
 What gets measured gets optimized. Every script that calls the API must track token usage.
 
 ### 16. Response Metadata Logging
-- id: tokenopt_skill.monitoring.response_metadata
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: After every API call, log the `usage_metadata` from the response. Track input tokens, output tokens, cached tokens, and total tokens over time.
 
 **Why**: Without logging, cost overruns are invisible until the invoice arrives. Token logs allow you to detect regressions (e.g., a prompt change that doubled token usage), track cache hit rates, and validate that optimizations are working.
@@ -753,11 +650,6 @@ def log_token_usage(response, task_name: str):
 ```
 
 ### 17. Pre-Flight Token Estimation
-- id: tokenopt_skill.monitoring.preflight_estimation
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Before submitting a large batch or expensive request, estimate the total token cost and log a warning if it exceeds a configurable threshold.
 
 **Why**: A single misconfigured batch run can consume millions of tokens. A pre-flight check acts as a circuit breaker.
@@ -805,19 +697,9 @@ def estimate_batch_cost(
 ```
 
 ## Error Handling and Retry Economy
-- id: tokenopt_skill.error_handling
-- status: active
-- type: context
-- last_checked: 2026-03-02
-<!-- content -->
 Failed requests waste tokens. Retries multiply that waste. Defensive coding prevents both.
 
 ### 18. Retry Strategies
-- id: tokenopt_skill.error_handling.retry_strategies
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Use exponential backoff with a maximum retry count. Never use infinite retry loops. On persistent failures, log the failing input and skip rather than burning tokens on a prompt the model cannot handle.
 
 **Why**: A malformed prompt that triggers a 400 error will fail on every retry. Rate-limit errors (429) benefit from backoff, but content errors do not. Distinguishing between retryable and non-retryable errors prevents token waste.
@@ -860,11 +742,6 @@ def call_with_retry(
 ```
 
 ### 19. Output Validation Before Re-Querying
-- id: tokenopt_skill.error_handling.output_validation
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 **Rule**: Validate the model's output against the expected schema *before* deciding to retry. If using structured output mode, parsing failures are rare and usually indicate a prompt issue, not a transient error.
 
 **Why**: Re-sending a prompt because the output "looked wrong" is the most expensive form of retry. Often the issue is in the prompt design, not the model's response. Fix the prompt, do not retry blindly.
@@ -884,11 +761,6 @@ def validate_and_extract(response_text: str, schema_class) -> dict | None:
 ```
 
 ## Quick Reference: Optimization Checklist
-- id: tokenopt_skill.checklist
-- status: active
-- type: guideline
-- last_checked: 2026-03-02
-<!-- content -->
 Before submitting any script that calls `google.genai`, verify every item:
 
 **Input Tokens**:
@@ -921,9 +793,4 @@ Before submitting any script that calls `google.genai`, verify every item:
 - [ ] `gemini-2.5-flash` is the default model; `pro` requires justification
 
 ## Known Incidents
-- id: tokenopt_skill.known_incidents
-- status: active
-- type: log
-- last_checked: 2026-03-02
-<!-- content -->
 - **March 2026 Semantic Alignment Bloat**: The initial semantic matching scripts processed 530 biblical chapters using `json.dumps(..., indent=2)` and `gemini-2.5-pro`. This consumed 3.69 million tokens at a cost of ~$26. Swapping to `gemini-2.5-flash` and stripping JSON whitespace reduced the footprint to a few cents per run.

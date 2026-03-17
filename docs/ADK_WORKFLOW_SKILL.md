@@ -1,20 +1,17 @@
 # ADK Workflow Agents Skill — Orchestration Guide
 - status: active
-- type: agent_skill
+- type: how-to
 - id: skill.adk_workflow
-- last_checked: 2026-02-24
-- label: [agent, guide, infrastructure, backend]
+- label: [agent, infrastructure, backend]
+- injection: procedural
+- volatility: evolving
+- last_checked: 2026-03-17
 <!-- content -->
 This document is the primary reference for building multi-agent pipelines with ADK's three **workflow agent types**: `SequentialAgent`, `ParallelAgent`, and `LoopAgent`. It covers architecture, all core classes and their import paths, state management, how tools integrate with workflow sub-agents, composition patterns, a catalogue of 24+ named workflow patterns, design principles, and troubleshooting.
 
 Reference: https://google.github.io/adk-docs/agents/workflow-agents/
 
 ## 1. What Are Workflow Agents?
-- status: active
-- type: guideline
-- id: skill.adk_workflow.overview
-- last_checked: 2026-02-24
-<!-- content -->
 Workflow agents are specialized ADK agents that control the **execution flow** of other agents using **predefined, deterministic logic** — no LLM is involved in the flow control itself. Their sub-agents can be any agent type, including other workflow agents, `LlmAgent` instances, or custom `BaseAgent` subclasses.
 
 This separation of concerns is the key insight: workflow agents handle **structure**, while `LlmAgent` sub-agents handle **intelligence**.
@@ -28,11 +25,6 @@ This separation of concerns is the key insight: workflow agents handle **structu
 All workflow agents are **non-LLM** — they never call a model to decide what to run next. This makes them completely deterministic and inspectable.
 
 ## 2. Core Classes & Import Conventions
-- status: active
-- type: guideline
-- id: skill.adk_workflow.imports
-- last_checked: 2026-02-24
-<!-- content -->
 All workflow agent classes must be imported in the agent package's `imports.py`. Never scatter these imports across sub-agent files.
 
 ```python
@@ -58,18 +50,8 @@ from .tools.loop_control import exit_loop   # if using LoopAgent
 ```
 
 ## 3. Agent Type Deep Dive
-- status: active
-- type: guideline
-- id: skill.adk_workflow.agent_types
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### SequentialAgent
-- status: active
-- type: guideline
-- id: skill.adk_workflow.agent_types.sequential
-- last_checked: 2026-02-24
-<!-- content -->
 Runs sub-agents **strictly in order**, waiting for each to complete before starting the next. All sub-agents share the same `InvocationContext`, so session state written by step N is immediately readable by step N+1.
 
 **Constructor:**
@@ -96,11 +78,6 @@ SequentialAgent(
 - Sub-agents can themselves be `ParallelAgent` or `LoopAgent` instances.
 
 ### ParallelAgent
-- status: active
-- type: guideline
-- id: skill.adk_workflow.agent_types.parallel
-- last_checked: 2026-02-24
-<!-- content -->
 Runs sub-agents **concurrently**. All branches start at approximately the same time and execute independently.
 
 **Constructor:**
@@ -128,11 +105,6 @@ ParallelAgent(
 - Race conditions: if two branches write to the same `output_key`, the last writer wins. Avoid this — always give each branch a unique key.
 
 ### LoopAgent
-- status: active
-- type: guideline
-- id: skill.adk_workflow.agent_types.loop
-- last_checked: 2026-02-24
-<!-- content -->
 Repeatedly runs its sub-agents in order until a **termination condition** is triggered or the iteration cap is reached.
 
 **Constructor:**
@@ -168,19 +140,9 @@ LoopAgent(
 - Always pair `max_iterations` with an `escalate`-based tool — `max_iterations` is the safety net, not the primary exit.
 
 ## 4. State Management & output_key
-- status: active
-- type: guideline
-- id: skill.adk_workflow.state
-- last_checked: 2026-02-24
-<!-- content -->
 State is the primary data transport between workflow steps. Understanding it is essential.
 
 ### How output_key works
-- status: active
-- type: guideline
-- id: skill.adk_workflow.state.output_key
-- last_checked: 2026-02-24
-<!-- content -->
 `output_key` is an `LlmAgent` parameter. After the agent finishes, ADK stores its last text response into `session.state[output_key]`.
 
 ```python
@@ -201,11 +163,6 @@ pipeline = SequentialAgent(name='haiku_pipeline', sub_agents=[step_a, step_b])
 ```
 
 ### State namespace rules
-- status: active
-- type: guideline
-- id: skill.adk_workflow.state.namespaces
-- last_checked: 2026-02-24
-<!-- content -->
 ADK session state supports namespaced keys to control scope and persistence:
 
 | Prefix | Scope | Example |
@@ -218,11 +175,6 @@ ADK session state supports namespaced keys to control scope and persistence:
 Use `temp:` keys for intermediate values that should not persist between user turns.
 
 ### State in ParallelAgent branches
-- status: active
-- type: guideline
-- id: skill.adk_workflow.state.parallel_state
-- last_checked: 2026-02-24
-<!-- content -->
 Parallel branches share the same `InvocationContext` but execute independently. The safe pattern is to assign each branch a unique `output_key`:
 
 ```python
@@ -242,19 +194,9 @@ fan_in = LlmAgent(
 ```
 
 ## 5. The exit_loop Pattern
-- status: active
-- type: guideline
-- id: skill.adk_workflow.exit_loop
-- last_checked: 2026-02-24
-<!-- content -->
 The standard way to terminate a `LoopAgent` from within a sub-agent is via a Python tool that sets `tool_context.actions.escalate = True`.
 
 ### Implementing exit_loop
-- status: active
-- type: guideline
-- id: skill.adk_workflow.exit_loop.implementation
-- last_checked: 2026-02-24
-<!-- content -->
 ```python
 # tools/loop_control.py
 from google.adk.tools import ToolContext
@@ -269,11 +211,6 @@ def exit_loop(tool_context: ToolContext) -> dict:
 ```
 
 ### Wiring exit_loop into an LlmAgent
-- status: active
-- type: guideline
-- id: skill.adk_workflow.exit_loop.wiring
-- last_checked: 2026-02-24
-<!-- content -->
 ```python
 from .tools.loop_control import exit_loop
 
@@ -290,29 +227,14 @@ evaluator_agent = LlmAgent(
 ```
 
 ### When escalate fires mid-iteration
-- status: active
-- type: guideline
-- id: skill.adk_workflow.exit_loop.timing
-- last_checked: 2026-02-24
-<!-- content -->
 When `escalate = True` is set by a sub-agent, the `LoopAgent` stops after that sub-agent's turn. The remaining sub-agents in the **current iteration** are skipped. The next iteration does not start.
 
 This means: if the evaluator fires `exit_loop` first in an iteration, the improver that follows it will be skipped — the loop terminates cleanly.
 
 ## 6. Composition Patterns
-- status: active
-- type: guideline
-- id: skill.adk_workflow.composition
-- last_checked: 2026-02-24
-<!-- content -->
 Workflow agents are designed to be **nested**. A `SequentialAgent`'s sub-agents can include `ParallelAgent` and `LoopAgent` instances, and those can themselves contain `SequentialAgent` steps.
 
 ### Pattern A — Linear Pipeline (Sequential only)
-- status: active
-- type: guideline
-- id: skill.adk_workflow.composition.linear
-- last_checked: 2026-02-24
-<!-- content -->
 The simplest pattern: steps run in strict order, each reading the previous step's `output_key`.
 
 ```python
@@ -323,11 +245,6 @@ SequentialAgent(sub_agents=[step_a, step_b, step_c])
 Use for: data transformation chains, code generation → review → refactor, multi-step document processing.
 
 ### Pattern B — Fan-Out / Fan-In (Parallel inside Sequential)
-- status: active
-- type: guideline
-- id: skill.adk_workflow.composition.fan_out_fan_in
-- last_checked: 2026-02-24
-<!-- content -->
 Independent parallel tasks feed a single synthesis step.
 
 ```python
@@ -340,11 +257,6 @@ SequentialAgent(sub_agents=[
 Use for: multi-angle research, parallel validation, concurrent data fetching followed by aggregation.
 
 ### Pattern C — Generate then Polish (Sequential with Loop)
-- status: active
-- type: guideline
-- id: skill.adk_workflow.composition.generate_then_polish
-- last_checked: 2026-02-24
-<!-- content -->
 A first-pass generator feeds an iterative refinement loop.
 
 ```python
@@ -357,11 +269,6 @@ SequentialAgent(sub_agents=[
 Use for: report writing, code generation, essay drafting, content creation.
 
 ### Pattern D — Full Pipeline (Parallel + Sequential + Loop)
-- status: active
-- type: guideline
-- id: skill.adk_workflow.composition.full_pipeline
-- last_checked: 2026-02-24
-<!-- content -->
 The complete three-phase pattern used in `workflow_agents/agent.py`:
 
 ```python
@@ -375,11 +282,6 @@ SequentialAgent(sub_agents=[
 Use for: research-to-report pipelines, multi-source document creation, complex content workflows.
 
 ### Pattern E — Nested Sequential inside Parallel
-- status: active
-- type: guideline
-- id: skill.adk_workflow.composition.nested_sequential_in_parallel
-- last_checked: 2026-02-24
-<!-- content -->
 Run independent multi-step pipelines concurrently.
 
 ```python
@@ -392,11 +294,6 @@ ParallelAgent(sub_agents=[
 Use for: processing multiple independent data sources that each require their own multi-step transformation.
 
 ### Pattern F — Loop over a Sequential Block
-- status: active
-- type: guideline
-- id: skill.adk_workflow.composition.loop_over_sequential
-- last_checked: 2026-02-24
-<!-- content -->
 Repeat a multi-step process until a condition is met.
 
 ```python
@@ -412,11 +309,6 @@ LoopAgent(
 Use for: retry pipelines with multi-step attempts, iterative search-and-process workflows, crawling with pagination.
 
 ## 7. Tools within Workflow Pipelines
-- status: active
-- type: guideline
-- id: skill.adk_workflow.tools
-- last_checked: 2026-02-24
-<!-- content -->
 Workflow agents (`SequentialAgent`, `ParallelAgent`, `LoopAgent`) do **not** accept a `tools` parameter — they have no LLM and cannot call tools directly. Tools are always attached to **`LlmAgent` sub-agents** within the pipeline.
 
 ```
@@ -427,11 +319,6 @@ WorkflowAgent
 ```
 
 ### Python Tool Functions
-- status: active
-- type: guideline
-- id: skill.adk_workflow.tools.python
-- last_checked: 2026-02-24
-<!-- content -->
 A plain Python function with type annotations is the simplest tool type. Pass it directly in the `tools` list of any `LlmAgent` sub-agent.
 
 ```python
@@ -456,11 +343,6 @@ time_agent = LlmAgent(
 ADK automatically generates a JSON schema from the function's docstring and type annotations. The LLM calls the function by name when it decides to.
 
 ### ToolContext — Accessing Pipeline State from a Tool
-- status: active
-- type: guideline
-- id: skill.adk_workflow.tools.tool_context
-- last_checked: 2026-02-24
-<!-- content -->
 When a tool function accepts a `ToolContext` argument, ADK injects it automatically. `ToolContext` gives a tool direct access to the live session state and ADK action flags.
 
 ```python
@@ -484,11 +366,6 @@ def save_result(label: str, value: str, tool_context: ToolContext) -> dict:
 | `tool_context.save_artifact(filename, part)` | `None` | Persist a file or blob as an ADK artifact |
 
 ### MCP Tools inside Workflow Pipelines
-- status: active
-- type: guideline
-- id: skill.adk_workflow.tools.mcp
-- last_checked: 2026-02-24
-<!-- content -->
 `McpToolset` can be attached to any `LlmAgent` sub-agent within a workflow pipeline, exactly as it is in a standalone agent. The `LlmAgent` manages its own MCP connection independently of the workflow orchestration.
 
 ```python
@@ -527,11 +404,6 @@ pipeline = SequentialAgent(
 ```
 
 ### Mixing Tool Types
-- status: active
-- type: guideline
-- id: skill.adk_workflow.tools.mixing
-- last_checked: 2026-02-24
-<!-- content -->
 A single `LlmAgent` sub-agent can hold any mix of tool types simultaneously — Python functions, `ToolContext` tools, and `McpToolset` instances are all valid entries in the same `tools` list:
 
 ```python
@@ -556,11 +428,6 @@ researcher_agent = LlmAgent(
 ```
 
 ### Tools vs. Sub-agents — When to Use Each
-- status: active
-- type: guideline
-- id: skill.adk_workflow.tools.vs_sub_agents
-- last_checked: 2026-02-24
-<!-- content -->
 | Capability | Use a **tool** | Use a **sub-agent** |
 | :--- | :--- | :--- |
 | Calling an external API or system | ✓ | — |
@@ -574,19 +441,9 @@ researcher_agent = LlmAgent(
 The rule of thumb: if it needs to *think*, make it a sub-agent; if it needs to *act* (I/O, compute, control flow signals), make it a tool.
 
 ## 8. Workflow Pattern Library
-- status: active
-- type: guideline
-- id: skill.adk_workflow.pattern_library
-- last_checked: 2026-02-24
-<!-- content -->
 The following catalogue lists 24 named workflow patterns, organized by primary workflow agent type. Use it as a quick-reference when designing new pipelines.
 
 ### SequentialAgent Patterns
-- status: active
-- type: guideline
-- id: skill.adk_workflow.pattern_library.sequential
-- last_checked: 2026-02-24
-<!-- content -->
 
 | # | Pattern name | Structure | Description |
 | :- | :--- | :--- | :--- |
@@ -598,11 +455,6 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | 6 | **ETL Pipeline** | `Seq(ingest → clean → enrich → load)` | Classic extract-transform-load with each phase as a separate LlmAgent. |
 
 ### ParallelAgent Patterns
-- status: active
-- type: guideline
-- id: skill.adk_workflow.pattern_library.parallel
-- last_checked: 2026-02-24
-<!-- content -->
 
 | # | Pattern name | Structure | Description |
 | :- | :--- | :--- | :--- |
@@ -614,11 +466,6 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | 12 | **A/B Content Generation** | `Par(variant_a_agent, variant_b_agent) → Seq selector` | Generate two versions of content in parallel; a selector agent picks the better one. |
 
 ### LoopAgent Patterns
-- status: active
-- type: guideline
-- id: skill.adk_workflow.pattern_library.loop
-- last_checked: 2026-02-24
-<!-- content -->
 
 | # | Pattern name | Structure | Description |
 | :- | :--- | :--- | :--- |
@@ -630,11 +477,6 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | 18 | **Self-Consistency Check** | `Loop(generator → verifier)` | Generate an answer, verify it is self-consistent, re-generate if not. |
 
 ### Composite Patterns
-- status: active
-- type: guideline
-- id: skill.adk_workflow.pattern_library.composite
-- last_checked: 2026-02-24
-<!-- content -->
 
 | # | Pattern name | Structure | Description |
 | :- | :--- | :--- | :--- |
@@ -646,18 +488,8 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | 24 | **Iterative Multi-Branch** | `Loop(Par(branch_a, branch_b) → merger)` | Each iteration runs parallel branches and merges them; loop exits when the merged result is satisfactory. |
 
 ## 9. Design Principles
-- status: active
-- type: guideline
-- id: skill.adk_workflow.design_principles
-- last_checked: 2026-02-24
-<!-- content -->
 
 ### Naming Conventions
-- status: active
-- type: guideline
-- id: skill.adk_workflow.design_principles.naming
-- last_checked: 2026-02-24
-<!-- content -->
 | Element | Convention | Example |
 | :--- | :--- | :--- |
 | All agent variables | `<role>_agent` | `drafting_agent`, `reviewer_agent` |
@@ -668,44 +500,24 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | Temp state keys | `temp:<name>` | `temp:scratch_notes` |
 
 ### output_key Best Practices
-- status: active
-- type: guideline
-- id: skill.adk_workflow.design_principles.output_key
-- last_checked: 2026-02-24
-<!-- content -->
 - **Every `LlmAgent` that produces data for downstream steps must have an `output_key`.**
 - Use distinct keys across parallel branches to avoid overwrite races.
 - In a `LoopAgent`, the improver agent should write back to the **same key** as the initial value (e.g. always `"draft"`) so each iteration's evaluator sees the latest version.
 - Use `temp:` prefix for scratch keys that only live within one pipeline run.
 
 ### LoopAgent Safety Rules
-- status: active
-- type: guideline
-- id: skill.adk_workflow.design_principles.loop_safety
-- last_checked: 2026-02-24
-<!-- content -->
 - **Always set `max_iterations`** — an LLM that fails to call `exit_loop` will otherwise loop forever.
 - The `exit_loop` tool is the preferred termination path; `max_iterations` is the safety net.
 - Keep `max_iterations` low (3–5) for quality-loop patterns. Increase only for search/retry patterns where more attempts are genuinely useful.
 - The evaluator sub-agent should be the **first** sub-agent in the `sub_agents` list so it can exit early without running the improver on an already-good result.
 
 ### Instruction Design for Workflow Agents
-- status: active
-- type: guideline
-- id: skill.adk_workflow.design_principles.instructions
-- last_checked: 2026-02-24
-<!-- content -->
 - **Be explicit about scope**: each sub-agent's instruction should describe only its own task, not the full pipeline.
 - **Reference state with `{key}` placeholders**: ADK resolves these at runtime from session state.
 - **Give clear exit criteria to evaluators**: vague instructions produce inconsistent `exit_loop` calls. Specify a checklist the LLM must verify before calling the tool.
 - **Keep parallel branch instructions independent**: branches must not assume knowledge of other branches' outputs since they run concurrently.
 
 ## 10. Troubleshooting
-- status: active
-- type: guideline
-- id: skill.adk_workflow.troubleshooting
-- last_checked: 2026-02-24
-<!-- content -->
 
 | Symptom | Likely cause | Fix |
 | :--- | :--- | :--- |
