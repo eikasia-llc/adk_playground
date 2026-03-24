@@ -2,7 +2,7 @@
 - status: active
 - type: agent_skill
 - id: ecosystem.designer.skill
-- last_checked: 2026-03-05
+- last_checked: 2026-03-24
 - label: [guide, reference, frontend]
 <!-- content -->
 The `ecosystem/` project is a **visual multi-agent architecture designer** built with React + React Flow. It lets you design ADK multi-agent pipelines by dragging and connecting nodes on a canvas, then exporting a working `agent.py` file.
@@ -13,7 +13,7 @@ Think of it as a local, ADK-specific version of [n8n](https://n8n.io/).
 - status: active
 - type: documentation
 - id: ecosystem.designer.skill.running
-- last_checked: 2026-03-05
+- last_checked: 2026-03-24
 <!-- content -->
 ```bash
 cd ecosystem
@@ -65,14 +65,22 @@ Stop conditions are expressed as properties of the **Evaluator node**:
 
 `max_iterations` on the parent `LoopAgent` acts as the hard upper bound regardless of the success condition.
 
-### Edge semantics
-Edges always carry information in the direction of the arrow. The color indicates the *relationship* between sender and receiver:
+### Flow visualization
+Active flow edges render **animated particles** (3 glowing dots) traveling in the direction of the arrow, making the information path visible at a glance.
 
-| Color | Meaning |
-| :--- | :--- |
-| Indigo (animated) | Workflow agent → sub-agent (orchestration + data) |
-| Orange | LLM agent → delegated agent |
-| Teal dashed | Any agent → tool (function call) |
+- **Particle speed** is controlled by `data.speed` on each edge (seconds per traversal, default 2.5). This field is reserved for future latency/speed analysis.
+- **Stuck nodes** — any non-Human, non-information node with no outgoing edges — are highlighted with a pulsing amber ring. This flags dead-ends in the pipeline where flow enters but cannot continue.
+- **Information Set edges** (Database, Context) carry data/reference rather than active flow. They render as plain edges with no particles, visually distinguishing passive data from active processing.
+
+### Edge semantics
+Edges always carry information in the direction of the arrow. Color indicates the relationship:
+
+| Color | Style | Meaning |
+| :--- | :--- | :--- |
+| Indigo | Solid, animated | Workflow agent → sub-agent (orchestration + data) |
+| Orange | Solid | LLM agent → delegated agent |
+| Teal | Dashed | Any agent → tool (function call) |
+| Gray | Plain, no particles | Any node → Information Set (Database or Context) |
 
 ## Node Types
 - status: active
@@ -80,37 +88,61 @@ Edges always carry information in the direction of the arrow. The color indicate
 - id: ecosystem.designer.skill.nodes
 - last_checked: 2026-03-24
 <!-- content -->
-| Node | Color | ADK Class | Purpose |
+
+### Active flow nodes
+These nodes participate in information flow and connect with animated particle edges.
+
+| Node | Palette group | Color | ADK Class | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| 👤 Human / User | (standalone) | Yellow | — | Entry point: the user's request entering the pipeline. Appears once. |
+| 🤖 LLM Agent | (standalone) | Blue | `LlmAgent` | Intelligent agent driven by an LLM |
+| ➡️ Sequential | Workflow Agents | Green | `SequentialAgent` | Runs sub-agents one after another |
+| ⚡ Parallel | Workflow Agents | Purple | `ParallelAgent` | Runs sub-agents concurrently |
+| 🔄 Loop | Workflow Agents | Orange | `LoopAgent` | Iterates sub-agents until exit signal or max iterations |
+| ✅ Evaluator | Workflow Agents | Emerald | `LlmAgent` + `exit_loop` | Checks output against a success condition; exits loop when satisfied. Always place last inside a Loop. |
+| 🔧 Tool | Tools | Gray | Python function | Custom callable tool for an LlmAgent |
+| 🔌 MCP Toolset | Tools | Teal | `McpToolset` | Connects an external MCP server to an LlmAgent |
+
+### Information Set nodes
+These nodes represent passive data sources. Their edges carry no flow particles and they do not trigger stuck-node warnings. They are of a fundamentally different nature from active flow nodes.
+
+| Node | Palette group | Color | Purpose |
 | :--- | :--- | :--- | :--- |
-| 👤 Human / User | Yellow | — | Entry point: the user's request entering the pipeline |
-| 🤖 LLM Agent | Blue | `LlmAgent` | Intelligent agent driven by an LLM |
-| ➡️ Sequential | Green | `SequentialAgent` | Runs sub-agents one after another |
-| ⚡ Parallel | Purple | `ParallelAgent` | Runs sub-agents concurrently |
-| 🔄 Loop | Orange | `LoopAgent` | Iterates sub-agents until exit signal or max iterations |
-| ✅ Evaluator | Emerald | `LlmAgent` + `exit_loop` | Checks output against a success condition; exits loop when satisfied |
-| 🔧 Tool | Gray | Python function | Custom callable tool for an LlmAgent |
-| 🔌 MCP Toolset | Teal | `McpToolset` | Connects an external MCP server to an LlmAgent |
-| 🧠 Observation Set | Pink | (Memory Tool) | Represents persistent knowledge graph entities or observations |
+| 🗄️ Database | Information Sets | Violet | Persistent data store (SQL, NoSQL, vector DB, etc.) connected to the pipeline |
+| 📋 Context | Information Sets | Cyan | Static or dynamic knowledge injected into the pipeline (instructions, reference data, documents) |
 
 ## How to Use
 - status: active
 - type: documentation
 - id: ecosystem.designer.skill.howto
-- last_checked: 2026-03-05
+- last_checked: 2026-03-24
 <!-- content -->
+
+### Palette groups
+The left sidebar organises nodes into collapsible groups. Click a group header to expand it:
+
+| Group | Contents |
+| :--- | :--- |
+| (standalone) | LLM Agent, Human / User |
+| 🔀 Workflow Agents | Sequential, Parallel, Loop, Evaluator |
+| 🧰 Tools | Tool, MCP Toolset |
+| 🗂️ Information Sets | Database, Context |
 
 ### Building a pipeline
 1. **Drag** a node from the left palette onto the canvas.
-2. **Connect** nodes by dragging from a bottom handle (sub-agent) or right handle (tool) to another node's top handle.
+2. **Connect** nodes by dragging from any handle to another node's handle.
 3. **Click** any node to open its properties in the right panel.
-4. **Edit** fields: name, model, instruction, output_key, max_iterations, MCP command, etc.
+4. **Edit** fields: name, model, instruction, output_key, max_iterations, success_condition, DB type, content, etc.
+5. All nodes are **resizable**: select a node and drag the corner/edge handles.
 
 ### Edge types
-- **Sub-agent edge** (solid animated line): connects a workflow agent to its child agents. Draw from the **bottom handle** of the parent.
-- **Tool edge** (dashed line): connects a Tool or McpToolset to an LlmAgent. Draw from the **right handle** of the LlmAgent.
+- **Sub-agent edge** (indigo, animated + particles): workflow agent → child agents.
+- **Delegate edge** (orange, particles): LLM agent → another agent.
+- **Tool edge** (teal dashed, particles): any agent → Tool or MCP Toolset.
+- **Information edge** (gray, no particles): any agent → Database or Context.
 
-### Observation Sets & Memory
-The **Observation Set** node represents persistent facts managed by the **MCP Memory Server** (`@modelcontextprotocol/server-memory`). You can visually connect these nodes to represent state or facts that an `LlmAgent` should read from or write to the knowledge graph, giving the pipeline cross-session memory.
+### Stuck node indicator
+Any non-Human, non-information node with no outgoing edges is flagged with a **pulsing amber ring**. This means the pipeline has a dead-end at that node — flow enters but cannot continue. Connect an outgoing edge to clear the warning.
 
 ### Saving & loading
 - **Save** stores the current canvas as JSON in `localStorage`.
@@ -128,7 +160,7 @@ Click **Export Python** in the toolbar — the browser downloads an `agent.py` f
 - status: active
 - type: documentation
 - id: ecosystem.designer.skill.files
-- last_checked: 2026-03-05
+- last_checked: 2026-03-24
 <!-- content -->
 ```
 ecosystem/
@@ -136,40 +168,48 @@ ecosystem/
 ├── package.json
 ├── vite.config.ts
 ├── tsconfig.json
-├── ADK_DESIGNER_SKILL.md         ← this file
+├── ADK_DESIGNER_SKILL.md              ← this file
 └── src/
-    ├── main.tsx                  ← React entry point
-    ├── App.tsx                   ← Layout: palette | canvas | properties
-    ├── App.css
+    ├── main.tsx                       ← React entry point
+    ├── App.tsx                        ← Layout: palette | canvas | properties
+    ├── App.css                        ← Global styles incl. stuck-node animation
     ├── index.css
     ├── types/
-    │   └── agent.ts              ← AgentKind, NodeData unions, helpers
-    ├── nodes/                    ← One React Flow custom node per ADK type
-    │   ├── BaseNode.tsx / .css   ← Shared node shell
+    │   └── agent.ts                   ← AgentKind, NodeData unions, palette items, helpers
+    ├── edges/
+    │   └── FlowEdge.tsx               ← Custom edge: animated particles for active flow
+    ├── nodes/                         ← One React Flow custom node per type
+    │   ├── BaseNode.tsx / .css        ← Shared node shell + NodeResizer
     │   ├── LlmAgentNode.tsx
     │   ├── SequentialAgentNode.tsx
     │   ├── ParallelAgentNode.tsx
     │   ├── LoopAgentNode.tsx
     │   ├── ToolNode.tsx
-    │   └── McpToolsetNode.tsx
+    │   ├── McpToolsetNode.tsx
+    │   ├── HumanNode.tsx
+    │   ├── EvaluatorNode.tsx
+    │   ├── DatabaseNode.tsx
+    │   └── ContextNode.tsx
     ├── components/
-    │   ├── NodePalette.tsx / .css   ← Left drag-and-drop sidebar
-    │   ├── PropertyPanel.tsx / .css ← Right property editor
-    │   └── Toolbar.tsx / .css       ← Top action bar
+    │   ├── NodePalette.tsx / .css     ← Left drag-and-drop sidebar (collapsible groups)
+    │   ├── PropertyPanel.tsx / .css   ← Right property editor
+    │   └── Toolbar.tsx / .css         ← Top action bar
     └── utils/
-        └── codeGenerator.ts         ← Graph → Python ADK code
+        └── codeGenerator.ts           ← Graph → Python ADK code
 ```
 
 ## Extending the Designer
 - status: active
 - type: documentation
 - id: ecosystem.designer.skill.extending
-- last_checked: 2026-03-05
+- last_checked: 2026-03-24
 <!-- content -->
 | Extension | How to add |
 | :--- | :--- |
-| **New node type** | Add to `AgentKind` in `types/agent.ts`, create a component in `nodes/`, add to `PALETTE_ITEMS`, handle in `codeGenerator.ts` |
+| **New active node type** | Add to `AgentKind` in `types/agent.ts`, create a component in `nodes/`, add to `PALETTE_ITEMS`, handle in `codeGenerator.ts` |
+| **New information node type** | Same as above, plus add the kind to `INFO_KINDS` in `App.tsx` so its edges skip particles |
 | **New model option** | Add to the `<select>` in `PropertyPanel.tsx` |
+| **Edge latency / speed** | Set `data.speed` (seconds) on an edge — `FlowEdge.tsx` reads it to control particle travel time |
 | **Persist to file** | Replace `localStorage` in Toolbar with a `fetch` call to a local server |
 | **Load existing agent.py** | Write a Python → graph JSON parser (reverse of `codeGenerator.ts`) |
 | **Auto-layout** | Integrate `@dagrejs/dagre` to arrange nodes automatically after import |

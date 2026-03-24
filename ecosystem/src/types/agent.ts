@@ -5,7 +5,8 @@ export type AgentKind =
   | 'LoopAgent'
   | 'Tool'
   | 'McpToolset'
-  | 'ObservationSet'
+  | 'Database'
+  | 'Context'
   | 'Human'
   | 'Evaluator'
 
@@ -76,14 +77,22 @@ export interface HumanData extends Record<string, unknown> {
   prompt: string
 }
 
-export interface ObservationSetData extends Record<string, unknown> {
-  kind: 'ObservationSet'
-  /** Display label shown on the frame */
+export interface DatabaseData extends Record<string, unknown> {
+  kind: 'Database'
   name: string
-  /** Name of the LlmAgent this scope belongs to */
-  for_agent: string
-  /** Color accent for the frame border */
-  color: string
+  description: string
+  /** e.g. PostgreSQL, Firestore, BigQuery, Pinecone */
+  db_type: string
+  /** Connection string, resource ID, or config reference */
+  connection: string
+}
+
+export interface ContextData extends Record<string, unknown> {
+  kind: 'Context'
+  name: string
+  description: string
+  /** The contextual content or knowledge passed into the pipeline */
+  content: string
 }
 
 export type NodeData =
@@ -93,7 +102,8 @@ export type NodeData =
   | LoopAgentData
   | ToolData
   | McpToolsetData
-  | ObservationSetData
+  | DatabaseData
+  | ContextData
   | HumanData
   | EvaluatorData
 
@@ -151,11 +161,18 @@ export const PALETTE_ITEMS: PaletteItem[] = [
     icon: '🔌',
   },
   {
-    kind: 'ObservationSet',
-    label: 'Observation Set',
-    description: 'Visual scope: nodes available to an LLM agent',
-    color: '#e879f9',
-    icon: '👁️',
+    kind: 'Database',
+    label: 'Database',
+    description: 'Persistent data store connected to the pipeline',
+    color: '#8b5cf6',
+    icon: '🗄️',
+  },
+  {
+    kind: 'Context',
+    label: 'Context',
+    description: 'Static or dynamic knowledge injected into the pipeline',
+    color: '#06b6d4',
+    icon: '📋',
   },
   {
     kind: 'Human',
@@ -207,12 +224,20 @@ export function defaultData(kind: AgentKind): NodeData {
         args: '',
         tool_filter: '',
       }
-    case 'ObservationSet':
+    case 'Database':
       return {
         kind,
-        name: 'Observation Set',
-        for_agent: '',
-        color: '#e879f9',
+        name: 'my_database',
+        description: '',
+        db_type: 'PostgreSQL',
+        connection: '',
+      }
+    case 'Context':
+      return {
+        kind,
+        name: 'my_context',
+        description: '',
+        content: '',
       }
     case 'Human':
       return {

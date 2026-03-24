@@ -39,7 +39,7 @@ export default function PropertyPanel({ node, onChange, onDelete }: PropertyPane
 
       <div className="pp-fields">
         {/* ── Common name / label field ── */}
-        <Field label={data.kind === 'ObservationSet' ? 'Label' : 'Name'}>
+        <Field label="Name">
           <input
             value={data.name}
             onChange={(e) => update({ name: e.target.value } as Partial<NodeData>)}
@@ -218,30 +218,51 @@ export default function PropertyPanel({ node, onChange, onDelete }: PropertyPane
           </>
         )}
 
-        {/* ── ObservationSet ── */}
-        {data.kind === 'ObservationSet' && (
+        {/* ── Database ── */}
+        {data.kind === 'Database' && (
           <>
-            <Field label="For agent">
+            <Field label="Description">
               <input
-                value={data.for_agent}
-                onChange={(e) => update({ for_agent: e.target.value } as Partial<NodeData>)}
-                placeholder="Name of the LLM agent this scope belongs to"
+                value={data.description}
+                onChange={(e) => update({ description: e.target.value } as Partial<NodeData>)}
+                placeholder="What data does this store?"
               />
             </Field>
-            <Field label="Frame color">
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <input
-                  type="color"
-                  value={data.color as string}
-                  onChange={(e) => update({ color: e.target.value } as Partial<NodeData>)}
-                  style={{ width: 36, height: 28, padding: 2, cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: 11, color: '#64748b' }}>{data.color as string}</span>
-              </div>
+            <Field label="DB type">
+              <input
+                value={data.db_type}
+                onChange={(e) => update({ db_type: e.target.value } as Partial<NodeData>)}
+                placeholder="e.g. PostgreSQL, Firestore, Pinecone"
+              />
             </Field>
-            <p style={{ fontSize: 11, color: '#475569', lineHeight: 1.5, marginTop: 4 }}>
-              Drag this frame behind the nodes that are visible to the named agent. Resize by selecting and dragging the corners.
-            </p>
+            <Field label="Connection">
+              <input
+                value={data.connection}
+                onChange={(e) => update({ connection: e.target.value } as Partial<NodeData>)}
+                placeholder="Connection string or resource ID"
+              />
+            </Field>
+          </>
+        )}
+
+        {/* ── Context ── */}
+        {data.kind === 'Context' && (
+          <>
+            <Field label="Description">
+              <input
+                value={data.description}
+                onChange={(e) => update({ description: e.target.value } as Partial<NodeData>)}
+                placeholder="What kind of knowledge is this?"
+              />
+            </Field>
+            <Field label="Content">
+              <textarea
+                value={data.content}
+                onChange={(e) => update({ content: e.target.value } as Partial<NodeData>)}
+                rows={6}
+                placeholder="Static text, instructions, or reference data injected into the pipeline…"
+              />
+            </Field>
           </>
         )}
       </div>

@@ -27,7 +27,8 @@ import ParallelAgentNode from './nodes/ParallelAgentNode'
 import LoopAgentNode from './nodes/LoopAgentNode'
 import ToolNode from './nodes/ToolNode'
 import McpToolsetNode from './nodes/McpToolsetNode'
-import ObservationSetNode from './nodes/ObservationSetNode'
+import DatabaseNode from './nodes/DatabaseNode'
+import ContextNode from './nodes/ContextNode'
 import HumanNode from './nodes/HumanNode'
 import EvaluatorNode from './nodes/EvaluatorNode'
 import FlowEdge from './edges/FlowEdge'
@@ -45,7 +46,8 @@ const nodeTypes: NodeTypes = {
   LoopAgent: LoopAgentNode,
   Tool: ToolNode,
   McpToolset: McpToolsetNode,
-  ObservationSet: ObservationSetNode,
+  Database: DatabaseNode,
+  Context: ContextNode,
   Human: HumanNode,
   Evaluator: EvaluatorNode,
 }
@@ -57,11 +59,11 @@ const edgeTypes: EdgeTypes = {
 const INITIAL_NODES: Node<NodeData>[] = []
 const INITIAL_EDGES: Edge[] = []
 
-// ObservationSet nodes need an initial size
-const OBS_SET_DEFAULTS = { style: { width: 320, height: 220 }, zIndex: -1 }
-
 // Kinds that sit at the boundary of the pipeline and don't need outgoing edges
-const TERMINAL_KINDS: AgentKind[] = ['Human', 'ObservationSet']
+const TERMINAL_KINDS: AgentKind[] = ['Human', 'Database', 'Context']
+
+// Kinds whose edges carry data/reference rather than active flow (no particles)
+const INFO_KINDS: AgentKind[] = ['Database', 'Context']
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>(INITIAL_NODES)
@@ -105,7 +107,8 @@ export default function App() {
       const style = edgeStyle(sourceKind, targetKind)
 
       const isObservation =
-        sourceKind === 'ObservationSet' || targetKind === 'ObservationSet'
+        (sourceKind !== undefined && INFO_KINDS.includes(sourceKind)) ||
+        (targetKind !== undefined && INFO_KINDS.includes(targetKind))
 
       const edge: Edge = {
         ...connection,
@@ -141,13 +144,11 @@ export default function App() {
     })
 
     const id = `${kind}-${idCounter.current++}`
-    const extras = kind === 'ObservationSet' ? OBS_SET_DEFAULTS : {}
     const newNode: Node<NodeData> = {
       id,
       type: kind,
       position,
       data: defaultData(kind),
-      ...extras,
     }
     setNodes((nds) => nds.concat(newNode))
     setSelectedNodeId(id)
@@ -242,10 +243,7 @@ export default function App() {
             />
             <Controls />
             <MiniMap
-              nodeColor={(n) => {
-                const d = n.data as NodeData
-                return d.kind === 'ObservationSet' ? (d.color as string) : kindColor(d.kind)
-              }}
+              nodeColor={(n) => kindColor((n.data as NodeData).kind)}
               style={{ background: '#12141f', border: '1px solid #2d3148' }}
             />
           </ReactFlow>
