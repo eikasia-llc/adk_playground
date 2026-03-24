@@ -7,6 +7,7 @@ export type AgentKind =
   | 'McpToolset'
   | 'ObservationSet'
   | 'Human'
+  | 'Evaluator'
 
 export type EdgeKind = 'sub_agent' | 'delegate' | 'tool'
 
@@ -59,6 +60,14 @@ export interface McpToolsetData extends Record<string, unknown> {
   tool_filter: string
 }
 
+export interface EvaluatorData extends Record<string, unknown> {
+  kind: 'Evaluator'
+  name: string
+  model: string
+  /** Natural-language rubric the LLM checks the output against */
+  success_condition: string
+}
+
 export interface HumanData extends Record<string, unknown> {
   kind: 'Human'
   name: string
@@ -86,6 +95,7 @@ export type NodeData =
   | McpToolsetData
   | ObservationSetData
   | HumanData
+  | EvaluatorData
 
 // ─── Palette entry (what shows up in the left sidebar) ───────────────────────
 
@@ -154,6 +164,13 @@ export const PALETTE_ITEMS: PaletteItem[] = [
     color: '#eab308',
     icon: '👤',
   },
+  {
+    kind: 'Evaluator',
+    label: 'Evaluator',
+    description: 'Checks output against a success condition; exits loop when satisfied',
+    color: '#10b981',
+    icon: '✅',
+  },
 ]
 
 // ─── Default data for each kind ──────────────────────────────────────────────
@@ -203,6 +220,13 @@ export function defaultData(kind: AgentKind): NodeData {
         name: 'human_input',
         description: '',
         prompt: 'Please provide your input:',
+      }
+    case 'Evaluator':
+      return {
+        kind,
+        name: 'evaluator',
+        model: 'gemini-2.5-flash',
+        success_condition: 'The output fully and correctly addresses the original request.',
       }
   }
 }

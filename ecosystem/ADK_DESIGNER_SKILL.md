@@ -27,18 +27,67 @@ npm run build      # outputs to ecosystem/dist/
 npm run preview    # serves the build locally
 ```
 
+## Information Flow Model
+- status: active
+- type: documentation
+- id: ecosystem.designer.skill.flow
+- last_checked: 2026-03-24
+<!-- content -->
+Every pipeline on the canvas is a directed graph of **information flow** — data moves from node to node, being transformed at each step. Edges represent the path information travels, not just which agent controls which.
+
+### Single-turn flow (default)
+The canonical shape is linear:
+
+```
+👤 Human → [agents / tools] → Output
+```
+
+The **Human node is the entry point**: it represents the user's request entering the system. Information flows forward through LLM agents, tools, and workflow orchestrators until a final output is produced. The Human node appears **once** per pipeline.
+
+### Looping pipeline
+When the task requires iteration — e.g., "keep refining until the output is good enough" — the pipeline is wrapped in a `LoopAgent`:
+
+```
+👤 Human → LoopAgent ┐
+                     ├─ [processing agents]
+                     └─ ✅ Evaluator  ──(exit_loop if satisfied)──► Output
+```
+
+The `LoopAgent` re-runs its sub-agents on each iteration. The **Evaluator node** sits at the end of the loop and checks the current output against a success condition. If satisfied, it calls `exit_loop` and the pipeline terminates. If not, the loop continues up to `max_iterations`.
+
+### Stop conditions
+Stop conditions are expressed as properties of the **Evaluator node**:
+
+| Field | Meaning |
+| :--- | :--- |
+| `success_condition` | Natural-language rubric the LLM evaluator checks against (e.g., *"The answer is factually correct and under 200 words"*) |
+| `model` | Which LLM judges the output |
+
+`max_iterations` on the parent `LoopAgent` acts as the hard upper bound regardless of the success condition.
+
+### Edge semantics
+Edges always carry information in the direction of the arrow. The color indicates the *relationship* between sender and receiver:
+
+| Color | Meaning |
+| :--- | :--- |
+| Indigo (animated) | Workflow agent → sub-agent (orchestration + data) |
+| Orange | LLM agent → delegated agent |
+| Teal dashed | Any agent → tool (function call) |
+
 ## Node Types
 - status: active
 - type: documentation
 - id: ecosystem.designer.skill.nodes
-- last_checked: 2026-03-05
+- last_checked: 2026-03-24
 <!-- content -->
 | Node | Color | ADK Class | Purpose |
 | :--- | :--- | :--- | :--- |
+| 👤 Human / User | Yellow | — | Entry point: the user's request entering the pipeline |
 | 🤖 LLM Agent | Blue | `LlmAgent` | Intelligent agent driven by an LLM |
 | ➡️ Sequential | Green | `SequentialAgent` | Runs sub-agents one after another |
 | ⚡ Parallel | Purple | `ParallelAgent` | Runs sub-agents concurrently |
 | 🔄 Loop | Orange | `LoopAgent` | Iterates sub-agents until exit signal or max iterations |
+| ✅ Evaluator | Emerald | `LlmAgent` + `exit_loop` | Checks output against a success condition; exits loop when satisfied |
 | 🔧 Tool | Gray | Python function | Custom callable tool for an LlmAgent |
 | 🔌 MCP Toolset | Teal | `McpToolset` | Connects an external MCP server to an LlmAgent |
 | 🧠 Observation Set | Pink | (Memory Tool) | Represents persistent knowledge graph entities or observations |

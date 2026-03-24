@@ -7,7 +7,7 @@ interface NodePaletteProps {
   onDragStart: (kind: AgentKind, event: React.DragEvent) => void
 }
 
-const WORKFLOW_KINDS: AgentKind[] = ['SequentialAgent', 'ParallelAgent', 'LoopAgent']
+const WORKFLOW_KINDS: AgentKind[] = ['SequentialAgent', 'ParallelAgent', 'LoopAgent', 'Evaluator']
 const WORKFLOW_COLOR = '#6366f1'
 
 const TOOL_KINDS: AgentKind[] = ['Tool', 'McpToolset']
@@ -59,7 +59,7 @@ export default function NodePalette({ onDragStart }: NodePaletteProps) {
           <span className="palette-icon">🔀</span>
           <div className="palette-text">
             <div className="palette-label">Workflow Agents</div>
-            <div className="palette-desc">Sequential, Parallel, Loop</div>
+            <div className="palette-desc">Sequential, Parallel, Loop, Evaluator</div>
           </div>
           <span className="palette-group-chevron" style={{ transform: workflowOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
         </button>

@@ -28,6 +28,7 @@ import ToolNode from './nodes/ToolNode'
 import McpToolsetNode from './nodes/McpToolsetNode'
 import ObservationSetNode from './nodes/ObservationSetNode'
 import HumanNode from './nodes/HumanNode'
+import EvaluatorNode from './nodes/EvaluatorNode'
 
 import NodePalette from './components/NodePalette'
 import PropertyPanel from './components/PropertyPanel'
@@ -44,6 +45,7 @@ const nodeTypes: NodeTypes = {
   McpToolset: McpToolsetNode,
   ObservationSet: ObservationSetNode,
   Human: HumanNode,
+  Evaluator: EvaluatorNode,
 }
 
 const INITIAL_NODES: Node<NodeData>[] = []

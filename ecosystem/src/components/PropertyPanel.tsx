@@ -169,6 +169,55 @@ export default function PropertyPanel({ node, onChange, onDelete }: PropertyPane
           </>
         )}
 
+        {/* ── Human ── */}
+        {data.kind === 'Human' && (
+          <>
+            <Field label="Description">
+              <input
+                value={data.description}
+                onChange={(e) => update({ description: e.target.value } as Partial<NodeData>)}
+                placeholder="Short description"
+              />
+            </Field>
+            <Field label="Prompt">
+              <textarea
+                value={data.prompt}
+                onChange={(e) => update({ prompt: e.target.value } as Partial<NodeData>)}
+                rows={3}
+                placeholder="Prompt shown to the human operator…"
+              />
+            </Field>
+          </>
+        )}
+
+        {/* ── Evaluator ── */}
+        {data.kind === 'Evaluator' && (
+          <>
+            <Field label="Model">
+              <select
+                value={data.model}
+                onChange={(e) => update({ model: e.target.value } as Partial<NodeData>)}
+              >
+                <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+              </select>
+            </Field>
+            <Field label="Success condition">
+              <textarea
+                value={data.success_condition}
+                onChange={(e) => update({ success_condition: e.target.value } as Partial<NodeData>)}
+                rows={5}
+                placeholder="Natural-language rubric the LLM checks the output against…"
+              />
+            </Field>
+            <p style={{ fontSize: 11, color: '#475569', lineHeight: 1.5, marginTop: 4 }}>
+              Place this node as the last sub-agent inside a Loop. It will call <code>exit_loop</code> when the success condition is met, or let the loop continue up to max iterations.
+            </p>
+          </>
+        )}
+
         {/* ── ObservationSet ── */}
         {data.kind === 'ObservationSet' && (
           <>
