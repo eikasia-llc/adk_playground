@@ -27,6 +27,7 @@ import LoopAgentNode from './nodes/LoopAgentNode'
 import ToolNode from './nodes/ToolNode'
 import McpToolsetNode from './nodes/McpToolsetNode'
 import ObservationSetNode from './nodes/ObservationSetNode'
+import HumanNode from './nodes/HumanNode'
 
 import NodePalette from './components/NodePalette'
 import PropertyPanel from './components/PropertyPanel'
@@ -42,6 +43,7 @@ const nodeTypes: NodeTypes = {
   Tool: ToolNode,
   McpToolset: McpToolsetNode,
   ObservationSet: ObservationSetNode,
+  Human: HumanNode,
 }
 
 const INITIAL_NODES: Node<NodeData>[] = []

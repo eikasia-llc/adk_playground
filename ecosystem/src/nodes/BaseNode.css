@@ -2,12 +2,13 @@
   background: #1e2130;
   border: 1.5px solid;
   border-radius: 10px;
-  min-width: 180px;
-  max-width: 220px;
+  min-width: 160px;
+  width: 100%;
+  height: 100%;
   font-size: 13px;
   cursor: pointer;
   transition: box-shadow 0.15s;
-  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .base-node-header {

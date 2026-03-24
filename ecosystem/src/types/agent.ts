@@ -6,6 +6,7 @@ export type AgentKind =
   | 'Tool'
   | 'McpToolset'
   | 'ObservationSet'
+  | 'Human'
 
 export type EdgeKind = 'sub_agent' | 'delegate' | 'tool'
 
@@ -58,6 +59,14 @@ export interface McpToolsetData extends Record<string, unknown> {
   tool_filter: string
 }
 
+export interface HumanData extends Record<string, unknown> {
+  kind: 'Human'
+  name: string
+  description: string
+  /** Prompt shown to the human operator */
+  prompt: string
+}
+
 export interface ObservationSetData extends Record<string, unknown> {
   kind: 'ObservationSet'
   /** Display label shown on the frame */
@@ -76,6 +85,7 @@ export type NodeData =
   | ToolData
   | McpToolsetData
   | ObservationSetData
+  | HumanData
 
 // ─── Palette entry (what shows up in the left sidebar) ───────────────────────
 
@@ -137,6 +147,13 @@ export const PALETTE_ITEMS: PaletteItem[] = [
     color: '#e879f9',
     icon: '👁️',
   },
+  {
+    kind: 'Human',
+    label: 'Human / User',
+    description: 'Human-in-the-loop interaction point',
+    color: '#eab308',
+    icon: '👤',
+  },
 ]
 
 // ─── Default data for each kind ──────────────────────────────────────────────
@@ -179,6 +196,13 @@ export function defaultData(kind: AgentKind): NodeData {
         name: 'Observation Set',
         for_agent: '',
         color: '#e879f9',
+      }
+    case 'Human':
+      return {
+        kind,
+        name: 'human_input',
+        description: '',
+        prompt: 'Please provide your input:',
       }
   }
 }

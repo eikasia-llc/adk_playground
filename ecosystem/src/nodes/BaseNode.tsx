@@ -1,4 +1,4 @@
-import { Handle, Position } from '@xyflow/react'
+import { Handle, Position, NodeResizer } from '@xyflow/react'
 import type { ReactNode } from 'react'
 import { kindColor, kindIcon } from '../types/agent'
 import type { AgentKind } from '../types/agent'
@@ -23,6 +23,13 @@ export default function BaseNode({ kind, name, selected = false, children }: Bas
         boxShadow: selected ? `0 0 0 2px ${color}` : `0 0 0 1px ${color}40`,
       }}
     >
+      <NodeResizer
+        isVisible={selected}
+        minWidth={160}
+        minHeight={60}
+        lineStyle={{ borderColor: color }}
+        handleStyle={{ borderColor: color, background: '#1e2130' }}
+      />
       {/* Four handles — one per side. connectionMode="loose" in App allows any-to-any. */}
       <Handle type="source" position={Position.Top}    id="top"    className="node-handle node-handle-top"    style={{ background: color }} />
       <Handle type="source" position={Position.Bottom} id="bottom" className="node-handle node-handle-bottom" style={{ background: color }} />
