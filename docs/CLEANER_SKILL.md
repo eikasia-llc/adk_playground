@@ -1,6 +1,9 @@
 # Cleaner Agent Context
 - status: active
 - type: how-to
+- id: agent.cleaner
+- description: Cleaner Agent instructions for ingesting external repositories via clean_repo.py, enforcing Markdown schema compliance, and merging content into the knowledge base.
+- owner: central-planner
 - label: [agent, skill]
 - injection: procedural
 - volatility: evolving

@@ -1,11 +1,12 @@
 # Model Context Protocol (MCP) — Explanation
 - status: active
-- type: explanation
+- type: reference
 - id: mcp-explanation
-- label: [agent, backend]
-- injection: background
-- volatility: stable
+- description: Comprehensive reference for the Model Context Protocol: tool registry, call loop, LLM orchestration, component architecture (Engine, Server, Tools), and database extension patterns.
+- injection: directive
+- volatility: evolving
 - last_checked: 2026-03-17
+- label: [agent, normative]
 <!-- content -->
 This document provides a comprehensive explanation of the **Model Context Protocol (MCP)** as implemented in this project. It covers the fundamental concepts, architecture, information flow, and how to extend the pattern from JSON data sources to relational databases.
 

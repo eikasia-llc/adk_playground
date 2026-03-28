@@ -2,7 +2,8 @@
 - status: active
 - type: how-to
 - id: skill.adk_implementation
-- label: [agent, infrastructure]
+- description: Primary playbook for scaffolding and running Google ADK agents: project setup, imports.py centralization convention, execution, testing, and MCP quick-start.
+- label: [agent, infrastructure, skill]
 - injection: procedural
 - volatility: evolving
 - last_checked: 2026-03-17
@@ -19,19 +20,19 @@ The ADK knowledge base is split across several specialized files. Use this map t
 | Skill file | Coverage | When to read it |
 | :--- | :--- | :--- |
 | **`ADK_SKILL.md`** *(this file)* | Project scaffolding, `imports.py` convention, execution & testing, MCP quick-start | Starting a new project or reviewing foundational conventions |
-| **`ADK_TOOLS_SKILL.md`** | All tool types: built-in (`google_search`, code executor), native ADK toolsets (BigQuery, Vertex AI), MCP integrations (GitHub, Stripe, MongoDB, Notion…), observability plugins — 24 tools catalogued | Adding any tool capability to an agent |
-| **`ADK_MCP_SKILL.md`** | MCP architecture deep-dive: `McpToolset`, stdio vs. SSE vs. StreamableHTTP, ADK-as-client vs. ADK-as-server, 30+ MCP tool reference | Connecting to an MCP server or understanding MCP internals |
-| **`ADK_WORKFLOW_SKILL.md`** | Workflow agents: `SequentialAgent`, `ParallelAgent`, `LoopAgent`, state management, `exit_loop` pattern, 24 composition patterns, design principles | Building deterministic multi-step pipelines |
+| **`ADK_TOOLS_REF.md`** | All tool types: built-in (`google_search`, code executor), native ADK toolsets (BigQuery, Vertex AI), MCP integrations (GitHub, Stripe, MongoDB, Notion…), observability plugins — 24 tools catalogued | Adding any tool capability to an agent |
+| **`ADK_MCP_REF.md`** | MCP architecture deep-dive: `McpToolset`, stdio vs. SSE vs. StreamableHTTP, ADK-as-client vs. ADK-as-server, 30+ MCP tool reference | Connecting to an MCP server or understanding MCP internals |
+| **`ADK_WORKFLOW_REF.md`** | Workflow agents: `SequentialAgent`, `ParallelAgent`, `LoopAgent`, state management, `exit_loop` pattern, 24 composition patterns, design principles | Building deterministic multi-step pipelines |
 
 **Project-level skill files** (live alongside each subproject's code):
 
 | Skill file | Project | What it demonstrates |
 | :--- | :--- | :--- |
-| `mcp_tools/FILESYSTEM_SKILL.md` | `mcp_tools/` | Filesystem MCP server, sandboxed workspace, `McpToolset` lifecycle |
+| `mcp_tools/FILESYSTEM_REF.md` | `mcp_tools/` | Filesystem MCP server, sandboxed workspace, `McpToolset` lifecycle |
 | `workflow_agents/WORKFLOW_SKILL.md` | `workflow_agents/` | Research-draft-refine pipeline using all three workflow agent types |
-| `ecosystem/ADK_ECOSYSTEM_SKILL.md` | `ecosystem/` | Combined workflow agents + `google_search` tool pipeline |
+| `ecosystem/ADK_DESIGNER_SKILL.md` | `ecosystem/` | Visual drag-and-drop ADK pipeline designer — node types, information flow model, stop conditions, flow visualization |
 
-**Reading order for new users:** `ADK_SKILL.md` → `ADK_TOOLS_SKILL.md` → `ADK_MCP_SKILL.md` → `ADK_WORKFLOW_SKILL.md`
+**Reading order for new users:** `ADK_SKILL.md` → `ADK_TOOLS_REF.md` → `ADK_MCP_REF.md` → `ADK_WORKFLOW_REF.md`
 
 ## 1. Creating an ADK Project From Scratch
 When starting a completely new, agent-first project, follow this standard initialization sequence:
@@ -187,7 +188,7 @@ For npm-based MCP servers (like `@modelcontextprotocol/server-filesystem`):
 - Node.js and `npx` must be installed and on `$PATH`.
 - Verify with `node --version` and `npx --version` before running `adk web` or `adk run`.
 ## 6. Token Optimization & Cost Efficiency
-When designing prompts, configuring agents, and supplying tool contexts, token efficiency is critical. Agents MUST follow these basic principles (see `TOKENOPT_SKILL.md` for deep dive):
+When designing prompts, configuring agents, and supplying tool contexts, token efficiency is critical. Agents MUST follow these basic principles (see `TOKENOPT_REF.md` for deep dive):
 
 1.  **Model Selection**: Default to `gemini-2.5-flash` for all data orchestration, parsing, and structured extraction. Reserve `gemini-2.5-pro` for deep reasoning, architectural planning, or complex creative inference.
 2.  **Filter Tools**: When initializing an `McpToolset`, always provide a minimal `tool_filter` list. Sending 20 unused tool schemas to an LLM on every turn wastes significant context capacity.

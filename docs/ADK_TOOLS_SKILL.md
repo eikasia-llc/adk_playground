@@ -1,9 +1,10 @@
 # ADK Tools Skill — Integrations & Tool Reference Guide
 - status: active
-- type: how-to
+- type: reference
 - id: skill.adk_tools
-- label: [agent, infrastructure, backend]
-- injection: procedural
+- description: Catalogue of all ADK tool types: built-in tools, native toolsets (BigQuery, Vertex AI), MCP-backed integrations, and observability plugins with import paths and setup code.
+- label: [agent, infrastructure, backend, skill]
+- injection: informational
 - volatility: evolving
 - last_checked: 2026-03-17
 <!-- content -->
@@ -12,8 +13,8 @@ This document is the primary reference for all tool types available to ADK agent
 Reference: https://google.github.io/adk-docs/integrations/
 
 Related skills:
-- `ADK_MCP_SKILL.md` — deep dive into MCP architecture and connection types
-- `ADK_WORKFLOW_SKILL.md` — how to attach any of these tools to workflow pipeline sub-agents
+- `ADK_MCP_REF.md` — deep dive into MCP architecture and connection types
+- `ADK_WORKFLOW_REF.md` — how to attach any of these tools to workflow pipeline sub-agents
 - `ADK_SKILL.md` — foundational ADK agent patterns
 
 ## 1. Tool Type Overview
@@ -179,7 +180,7 @@ agent = LlmAgent(
 Reference: https://google.github.io/adk-docs/integrations/vertex-ai-rag-engine/
 
 ## 4. MCP-Backed Integrations
-MCP-backed integrations connect an ADK agent to an external tool server via `McpToolset`. The server can run as a local subprocess (stdio) or a remote HTTP service (SSE/Streamable HTTP). See `ADK_MCP_SKILL.md` for full MCP architecture details.
+MCP-backed integrations connect an ADK agent to an external tool server via `McpToolset`. The server can run as a local subprocess (stdio) or a remote HTTP service (SSE/Streamable HTTP). See `ADK_MCP_REF.md` for full MCP architecture details.
 
 **Common import block for all MCP integrations:**
 ```python
@@ -447,7 +448,6 @@ stackone_toolset = McpToolset(
 Reference: https://google.github.io/adk-docs/integrations/
 
 ## 7. Communication & Media Tools
-
 ### Mailgun
 Send emails, track delivery metrics, and manage mailing lists via the Mailgun MCP server.
 
@@ -549,7 +549,6 @@ weave.init('my-adk-project')
 Reference: https://google.github.io/adk-docs/integrations/
 
 ## 9. Payment & Financial
-
 ### PayPal
 Manage PayPal payments, send invoices, and handle subscriptions via the PayPal MCP server.
 

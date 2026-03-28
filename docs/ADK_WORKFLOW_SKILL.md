@@ -1,9 +1,10 @@
 # ADK Workflow Agents Skill — Orchestration Guide
 - status: active
-- type: how-to
+- type: reference
 - id: skill.adk_workflow
-- label: [agent, infrastructure, backend]
-- injection: procedural
+- description: Reference for ADK workflow agents (SequentialAgent, ParallelAgent, LoopAgent): architecture, state management, 24+ composition patterns, and troubleshooting.
+- label: [agent, infrastructure, backend, skill]
+- injection: informational
 - volatility: evolving
 - last_checked: 2026-03-17
 <!-- content -->
@@ -50,7 +51,6 @@ from .tools.loop_control import exit_loop   # if using LoopAgent
 ```
 
 ## 3. Agent Type Deep Dive
-
 ### SequentialAgent
 Runs sub-agents **strictly in order**, waiting for each to complete before starting the next. All sub-agents share the same `InvocationContext`, so session state written by step N is immediately readable by step N+1.
 
@@ -444,7 +444,6 @@ The rule of thumb: if it needs to *think*, make it a sub-agent; if it needs to *
 The following catalogue lists 24 named workflow patterns, organized by primary workflow agent type. Use it as a quick-reference when designing new pipelines.
 
 ### SequentialAgent Patterns
-
 | # | Pattern name | Structure | Description |
 | :- | :--- | :--- | :--- |
 | 1 | **Linear Transform** | `Seq(A → B → C)` | Each step transforms the previous step's output. Classic data pipeline. |
@@ -455,7 +454,6 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | 6 | **ETL Pipeline** | `Seq(ingest → clean → enrich → load)` | Classic extract-transform-load with each phase as a separate LlmAgent. |
 
 ### ParallelAgent Patterns
-
 | # | Pattern name | Structure | Description |
 | :- | :--- | :--- | :--- |
 | 7 | **Multi-angle Research** | `Par(overview, examples, limitations) → Seq synthesiser` | Three researchers write independent briefs; one agent merges them. |
@@ -466,7 +464,6 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | 12 | **A/B Content Generation** | `Par(variant_a_agent, variant_b_agent) → Seq selector` | Generate two versions of content in parallel; a selector agent picks the better one. |
 
 ### LoopAgent Patterns
-
 | # | Pattern name | Structure | Description |
 | :- | :--- | :--- | :--- |
 | 13 | **Critique-Refine** | `Loop(critic → refiner)` | Critic evaluates output and calls `exit_loop` if approved; refiner improves it otherwise. |
@@ -477,7 +474,6 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | 18 | **Self-Consistency Check** | `Loop(generator → verifier)` | Generate an answer, verify it is self-consistent, re-generate if not. |
 
 ### Composite Patterns
-
 | # | Pattern name | Structure | Description |
 | :- | :--- | :--- | :--- |
 | 19 | **Research Pipeline** | `Seq(Par(researchers...) → synthesiser → Loop(reviewer → editor))` | Gather in parallel, draft, then iteratively refine. The `workflow_agents/` project example. |
@@ -488,7 +484,6 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 | 24 | **Iterative Multi-Branch** | `Loop(Par(branch_a, branch_b) → merger)` | Each iteration runs parallel branches and merges them; loop exits when the merged result is satisfactory. |
 
 ## 9. Design Principles
-
 ### Naming Conventions
 | Element | Convention | Example |
 | :--- | :--- | :--- |
@@ -518,7 +513,6 @@ The following catalogue lists 24 named workflow patterns, organized by primary w
 - **Keep parallel branch instructions independent**: branches must not assume knowledge of other branches' outputs since they run concurrently.
 
 ## 10. Troubleshooting
-
 | Symptom | Likely cause | Fix |
 | :--- | :--- | :--- |
 | `{key}` placeholder is empty or literal text | `output_key` not set on the upstream agent, or agents are in different `InvocationContext` scopes | Ensure the upstream `LlmAgent` has `output_key='key'` and both agents are sub-agents of the same workflow orchestrator |

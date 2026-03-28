@@ -1,9 +1,10 @@
 # ADK MCP Skill — Model Context Protocol Integration Guide
 - status: active
-- type: how-to
+- type: reference
 - id: skill.adk_mcp
-- label: [agent, infrastructure, backend]
-- injection: procedural
+- description: Primary reference for integrating MCP servers into ADK agents: McpToolset, stdio/SSE/StreamableHTTP transports, ADK-as-client vs ADK-as-server, and 30+ tool examples.
+- label: [agent, infrastructure, backend, skill]
+- injection: informational
 - volatility: evolving
 - last_checked: 2026-03-17
 <!-- content -->
@@ -53,7 +54,6 @@ from .imports import LlmAgent, McpToolset, StdioConnectionParams, StdioServerPar
 ```
 
 ## 3. Connection Types
-
 ### StdioConnectionParams — Local Subprocess
 Use this when the MCP server is a local process launched by ADK (most common for development and containerised deployments). The server communicates with ADK via stdin/stdout.
 
@@ -121,7 +121,6 @@ McpToolset(
 ```
 
 ## 5. Integration Patterns
-
 ### Pattern A — ADK as MCP Client (Standard)
 The agent's `tools` list contains one or more `McpToolset` instances. This is the pattern used in `mcp_tools/agent.py`.
 
@@ -318,7 +317,6 @@ root_agent = LlmAgent(
 ```
 
 ## 8. Deployment Patterns
-
 ### Pattern 1 — Self-Contained Stdio (Development / Docker)
 The MCP server is bundled inside the same container as the ADK agent and spawned as a subprocess.
 
@@ -352,7 +350,6 @@ The MCP server runs as a **sidecar container** in the same Kubernetes pod as the
 | Over-permissive filesystem | Sandbox to the smallest necessary directory; prefer read-only `tool_filter` sets where writes are not needed. |
 
 ## 10. Troubleshooting
-
 | Symptom | Likely cause | Fix |
 | :--- | :--- | :--- |
 | `McpToolset` raises on startup | `npx` / `uvx` not on `$PATH` | Install Node.js (`brew install node`) or `uv` (`pip install uv`) and verify with `which npx` |

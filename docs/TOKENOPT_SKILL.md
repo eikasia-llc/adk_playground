@@ -1,8 +1,9 @@
 # Token Optimization Skill
 - status: active
-- type: how-to
+- type: reference
 - id: tokenopt_skill
-- label: [agent, core]
+- description: Mandatory token optimization guardrails for all agents using google.genai: payload minification, output budgeting, batching, and caching to prevent API cost overruns.
+- label: [agent, core, skill]
 - injection: directive
 - volatility: evolving
 - last_checked: 2026-03-17

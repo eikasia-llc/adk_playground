@@ -1,9 +1,10 @@
 # Filesystem MCP Skill — Architecture & Implementation Guide
 - status: active
-- type: how-to
+- type: reference
 - id: mcp_tools.filesystem_skill
-- label: [backend, skill]
-- injection: procedural
+- description: Architecture and usage reference for the filesystem_assistant_agent: ADK MCP client-server pattern, McpToolset lifecycle, and sandboxed workspace management.
+- label: [agent, backend, skill]
+- injection: informational
 - volatility: evolving
 - last_checked: 2026-03-17
 <!-- content -->
@@ -54,12 +55,13 @@ mcp_tools/
 ├── .env                        # Git-ignored — contains GOOGLE_API_KEY
 ├── imports.py                  # Centralized ADK + MCP imports
 ├── agent.py                    # Root agent definition
-├── FILESYSTEM_SKILL.md         # This file
+├── FILESYSTEM_REF.md         # This file
 └── workspace/                  # Sandboxed directory the agent can access
     └── hello.txt               # Sample file for initial exploration
 ```
 
 ### Role of Each File
+
 | File | Role |
 | :--- | :--- |
 | `imports.py` | Single source of truth for all ADK and MCP class imports |
@@ -68,7 +70,6 @@ mcp_tools/
 | `.env` | Provides `GOOGLE_API_KEY` — never commit this file |
 
 ## Implementation
-
 ### Step 1 — Centralized Imports (`imports.py`)
 All ADK and MCP classes are imported once and re-exported from `imports.py`. Agent files consume only from this module.
 
@@ -149,7 +150,6 @@ The agent has access to exactly four MCP-provided tools:
 All paths are interpreted **relative to `workspace/`** by the MCP server — the agent cannot escape the sandbox.
 
 ## Example Interactions
-
 ### Example 1 — List the workspace
 **User:** What files are in the workspace?
 
@@ -192,7 +192,6 @@ The workspace contains:
 > Note: `move_file` is excluded from `tool_filter`, so the agent recreates the file manually — a deliberate safety trade-off.
 
 ## Running the Agent
-
 ### Prerequisites
 1. Python virtual environment activated with `google-adk` installed.
 2. `GOOGLE_API_KEY` set in `mcp_tools/.env`.

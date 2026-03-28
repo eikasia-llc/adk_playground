@@ -1,20 +1,16 @@
 # ADK Agent Designer — Visual Architecture Tool
 - status: active
-- type: agent_skill
+- type: how-to
 - id: ecosystem.designer.skill
-- last_checked: 2026-03-24
-- label: [guide, reference, frontend]
+- description: Visual ADK multi-agent pipeline designer built with React Flow: drag-and-drop node canvas, edge types, property panel, and Python agent.py export.
+- last_checked: 2026-03-26
+- label: [skill, frontend]
 <!-- content -->
 The `ecosystem/` project is a **visual multi-agent architecture designer** built with React + React Flow. It lets you design ADK multi-agent pipelines by dragging and connecting nodes on a canvas, then exporting a working `agent.py` file.
 
 Think of it as a local, ADK-specific version of [n8n](https://n8n.io/).
 
 ## Running the Designer
-- status: active
-- type: documentation
-- id: ecosystem.designer.skill.running
-- last_checked: 2026-03-24
-<!-- content -->
 ```bash
 cd ecosystem
 npm install        # first time only
@@ -28,11 +24,6 @@ npm run preview    # serves the build locally
 ```
 
 ## Information Flow Model
-- status: active
-- type: documentation
-- id: ecosystem.designer.skill.flow
-- last_checked: 2026-03-24
-<!-- content -->
 Every pipeline on the canvas is a directed graph of **information flow** — data moves from node to node, being transformed at each step. Edges represent the path information travels, not just which agent controls which.
 
 ### Single-turn flow (default)
@@ -83,12 +74,6 @@ Edges always carry information in the direction of the arrow. Color indicates th
 | Gray | Plain, no particles | Any node → Information Set (Database or Context) |
 
 ## Node Types
-- status: active
-- type: documentation
-- id: ecosystem.designer.skill.nodes
-- last_checked: 2026-03-24
-<!-- content -->
-
 ### Active flow nodes
 These nodes participate in information flow and connect with animated particle edges.
 
@@ -112,12 +97,6 @@ These nodes represent passive data sources. Their edges carry no flow particles 
 | 📋 Context | Information Sets | Cyan | Static or dynamic knowledge injected into the pipeline (instructions, reference data, documents) |
 
 ## How to Use
-- status: active
-- type: documentation
-- id: ecosystem.designer.skill.howto
-- last_checked: 2026-03-24
-<!-- content -->
-
 ### Palette groups
 The left sidebar organises nodes into collapsible groups. Click a group header to expand it:
 
@@ -157,11 +136,6 @@ Click **Export Python** in the toolbar — the browser downloads an `agent.py` f
 5. Generates only the imports needed for the types you used.
 
 ## File Structure
-- status: active
-- type: documentation
-- id: ecosystem.designer.skill.files
-- last_checked: 2026-03-24
-<!-- content -->
 ```
 ecosystem/
 ├── index.html
@@ -199,11 +173,6 @@ ecosystem/
 ```
 
 ## Extending the Designer
-- status: active
-- type: documentation
-- id: ecosystem.designer.skill.extending
-- last_checked: 2026-03-24
-<!-- content -->
 | Extension | How to add |
 | :--- | :--- |
 | **New active node type** | Add to `AgentKind` in `types/agent.ts`, create a component in `nodes/`, add to `PALETTE_ITEMS`, handle in `codeGenerator.ts` |

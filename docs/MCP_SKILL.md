@@ -1,10 +1,11 @@
 # MCP Protocol & Data Tools Skill
 - status: active
-- type: how-to
+- type: reference
+- description: In-process MCP server reference for the MCMP Chatbot: list_tools/call_tool interface, tool registry, and guidelines for extending with new data tools.
 - label: [agent, skill]
-- injection: procedural
+- injection: informational
 - volatility: evolving
-- last_checked: 2026-03-17
+- last_checked: 2026-03-14
 <!-- content -->
 - context_dependencies: {"conventions": "MD_CONVENTIONS.md", "server": "src/mcp/server.py", "tools": "src/mcp/tools.py"}
 <!-- content -->

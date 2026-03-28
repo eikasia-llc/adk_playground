@@ -2,7 +2,8 @@
 - status: active
 - type: explanation
 - id: mcp_protocol_extended
-- label: [agent, backend]
+- description: Three-layer MCP architecture (LLM, Client/Parser, Server) explaining how LLMs signal tool calls as text and how the orchestrator executes them in the MCMP Chatbot.
+- label: [agent, skill]
 - injection: background
 - volatility: stable
 - last_checked: 2026-03-17
@@ -11,11 +12,9 @@
 This document provides a comprehensive explanation of the **Model Context Protocol (MCP)** implementation within the MCMP Chatbot, including the fundamental architecture, information flow, and how LLMs interact with tools at multiple levels of abstraction.
 
 ## 1. Understanding MCP: The Three-Layer Architecture
-
 MCP is fundamentally a **protocol for structured communication** between three distinct layers. Understanding these layers is essential to grasping how LLMs "use tools".
 
 ### Layer 1: The LLM (Neural Network)
-
 **What it does**: Generates text tokens probabilistically based on input context.
 
 **What it CANNOT do**:
@@ -45,7 +44,6 @@ MCP is fundamentally a **protocol for structured communication** between three d
 This is pure text. The LLM generated these tokens the same way it generates essay paragraphs—by predicting the next most likely token.
 
 ### Layer 2: The MCP Client (Parser & Orchestrator)
-
 **What it does**: Acts as the "interpreter" between the LLM's text output and actual executable code.
 
 **Responsibilities**:
@@ -86,7 +84,6 @@ class MCPClient:
 ```
 
 ### Layer 3: The MCP Server (Tool Provider)
-
 **What it does**: Hosts and executes the actual tool implementations.
 
 **Responsibilities**:
@@ -147,7 +144,6 @@ class MCPServer:
 ```
 
 ### Architectural Diagram
-
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     USER / APPLICATION                          │
@@ -198,11 +194,9 @@ class MCPServer:
 ```
 
 ## 2. Information Flow: A Complete Trace
-
 Let's trace a complete request through the system to understand how information flows at each layer.
 
 ### User Query: "Who works on Logic?"
-
 **Step 1: Client Preparation (RAGEngine)**
 ```python
 # In src/core/engine.py
@@ -388,7 +382,6 @@ Would you like more information about their specific research projects?
 ```
 
 ### Key Observations from the Trace
-
 1. **The LLM never executes anything**: It only generates text patterns that signal intent.
 2. **The Client is the "brain"**: It orchestrates the entire flow, making actual function calls.
 3. **The Server is stateless**: It just executes functions and returns results. No memory between calls.
@@ -396,11 +389,9 @@ Would you like more information about their specific research projects?
 5. **Multi-turn loop**: Tool use often requires 2+ LLM calls: (1) to decide to use a tool, (2) to generate the final answer with the result.
 
 ## 3. How the LLM "Recognizes" When to Use Tools
-
 This is a common point of confusion: "How does the LLM know when to use a tool?"
 
 ### The Answer: Pattern Matching in High-Dimensional Space
-
 The LLM doesn't "reason" about tools in a symbolic way. Instead:
 
 1. **Training**: During fine-tuning, the model is shown many examples like:
@@ -429,7 +420,6 @@ The LLM doesn't "reason" about tools in a symbolic way. Instead:
 4. **Next Token Prediction**: The model predicts the next most likely token given the context. If the context strongly suggests "this is a tool use scenario," it generates the tool call pattern.
 
 ### Why Explicit Tool Injection Helps
-
 Some LLM APIs (like OpenAI's) support implicit tool injection—you just pass a `tools` parameter and the API handles it internally. However, **explicit injection into the system prompt is often superior** for several reasons:
 
 1. **Model Awareness**: Some models (especially smaller or open-source ones) aren't fine-tuned for implicit tool use. Explicit descriptions in natural language increase tool use accuracy.
@@ -451,7 +441,6 @@ Some LLM APIs (like OpenAI's) support implicit tool injection—you just pass a 
    ```
 
 ### Example: The "Data Enrichment" Pattern
-
 A common failure case in hybrid systems:
 
 **User**: "Tell me about the upcoming Logic seminar."
@@ -498,11 +487,9 @@ Abstract: "In this talk, I will explore..."
 ```
 
 ## 4. The "JSON Database" Pattern
-
 The MCMP Chatbot uses a **JSON-as-Database** pattern for tool data sources. This is a deliberate architectural choice with specific trade-offs.
 
 ### Architecture
-
 ```
 ┌─────────────────────────────────────────┐
 │     Web Scraping / Data Pipeline        │
@@ -546,7 +533,6 @@ The MCMP Chatbot uses a **JSON-as-Database** pattern for tool data sources. This
 ```
 
 ### Why JSON Instead of a Real Database?
-
 **Advantages**:
 1. **Zero Dependencies**: No need to run PostgreSQL, MongoDB, or any database server.
 2. **Simple Deployment**: JSON files can be committed to Git and deployed with the app.
@@ -561,7 +547,6 @@ The MCMP Chatbot uses a **JSON-as-Database** pattern for tool data sources. This
 4. **Scalability Ceiling**: At 100k+ items, in-memory filtering becomes slow.
 
 ### When to Migrate to a Real Database
-
 Migrate when:
 - Dataset grows beyond 10,000 items
 - Query latency exceeds 500ms
@@ -581,9 +566,7 @@ Migrate when:
 **Key Principle**: The MCP abstraction layer means you can change the backend without touching the LLM integration. The tool signature `search_people(query, role_filter) -> List[Dict]` remains the same whether it's loading JSON, querying SQLite, or calling a REST API.
 
 ## 5. Performance Optimization Strategies
-
 ### Current Bottleneck: Repeated File I/O
-
 **Problem**: Every tool call executes:
 ```python
 def search_people(query: str, role_filter: Optional[str] = None):
@@ -595,7 +578,6 @@ def search_people(query: str, role_filter: Optional[str] = None):
 For a single user session with 5 tool calls, this loads the same file 5 times from disk.
 
 ### Optimization 1: In-Memory Caching
-
 **Solution**: Use `functools.lru_cache` to cache loaded data.
 
 ```python
@@ -646,7 +628,6 @@ def search_people(query: str, role_filter: Optional[str] = None) -> List[Dict]:
 - 100x speedup for repeated queries
 
 ### Optimization 2: Lazy Loading with Singleton Pattern
-
 For more control, use a singleton `DataManager`:
 
 ```python
@@ -711,7 +692,6 @@ def search_people(query: str, role_filter: Optional[str] = None) -> List[Dict]:
 - Easy to add cache invalidation logic (e.g., reload every 24 hours)
 
 ### Optimization 3: Result Truncation
-
 **Problem**: Returning all 50 matching people to the LLM wastes tokens and may exceed context limits.
 
 **Solution**: Truncate results in the tool before returning:
@@ -750,11 +730,9 @@ def search_people(query: str, role_filter: Optional[str] = None, limit: int = 10
 - Forces the tool to return the "best" matches first (if you add relevance ranking)
 
 ## 6. Workflow for Adding New Tools
-
 Follow this checklist when adding a new tool:
 
 ### Step 1: Define the Tool Logic
-
 Create the Python function in `src/mcp/tools.py`:
 
 ```python
@@ -802,7 +780,6 @@ def get_publications(author_name: Optional[str] = None,
 ```
 
 ### Step 2: Register the Tool in the MCP Server
-
 Update `src/mcp/server.py`:
 
 ```python
@@ -819,7 +796,6 @@ class MCPServer:
 ```
 
 ### Step 3: Define the Tool Schema
-
 Add the JSON schema to `list_tools()` in `src/mcp/server.py`:
 
 ```python
@@ -870,7 +846,6 @@ Retrieve publications from the MCMP research database.
 - **Defaults**: Specify default values so the LLM can call with minimal arguments.
 
 ### Step 4: Write Tests
-
 Create `tests/test_publications_tool.py`:
 
 ```python
@@ -909,8 +884,7 @@ pytest tests/test_publications_tool.py -v
 ```
 
 ### Step 5: Update Documentation
-
-Add an entry to this document (`MCP_SKILL.md`) under a "Available Tools" section:
+Add an entry to this document (`MCP_TOOLS_REF.md`) under a "Available Tools" section:
 
 ```markdown
 ### get_publications
@@ -927,7 +901,6 @@ Add an entry to this document (`MCP_SKILL.md`) under a "Available Tools" section
 ```
 
 ### Step 6: Test with the LLM
-
 Start the Streamlit app and test queries that should trigger the new tool:
 
 ```
@@ -947,11 +920,9 @@ Expected: LLM calls search_people(query="Smith"), NOT get_publications
 3. Add explicit guidance in the system prompt: "For publication queries, ALWAYS use get_publications tool"
 
 ## 7. Advanced Patterns: Prompt Engineering for Tools
-
 Simply defining a tool is insufficient. LLMs require explicit prompting strategies to use tools correctly, especially in hybrid RAG systems.
 
 ### Pattern 1: Dynamic Tool Injection
-
 **Problem**: Implicit tool support (passing `tools` to API) works for GPT-4, but smaller models often miss tools.
 
 **Solution**: Inject tool descriptions into the system prompt as natural language.
@@ -987,7 +958,6 @@ You have access to specialized data retrieval tools.
 - Allows custom formatting and emphasis
 
 ### Pattern 2: The "Force Usage" Pattern
-
 **Problem**: LLMs are trained to be polite. They often ask permission before using tools:
 ```
 "Would you like me to search the database for events?"
@@ -1025,7 +995,6 @@ system_prompt = base_prompt + tools_section + tools_usage_rules
 - Aligns with user expectations (they assume the assistant has database access)
 
 ### Pattern 3: The "Data Enrichment" Pattern
-
 **Problem**: In hybrid RAG systems, the LLM might find partial information in the vector store and stop, ignoring tools that could provide complete data.
 
 **Example**:
@@ -1110,7 +1079,6 @@ LLM: "Prof. Smith is giving a talk on Modal Logic next Tuesday at 4 PM in Room 1
 ```
 
 ### Pattern 4: The "Conflict Resolution" Pattern
-
 **Problem**: RAG and tools might return contradictory information.
 
 **Example**:
@@ -1159,11 +1127,9 @@ system_prompt = base_prompt + tools_section + tools_usage_rules + enrichment_rul
 - Reduces user trust issues ("But the website says something different!")
 
 ## 8. Debugging Tool Usage
-
 When the LLM isn't using tools correctly, follow this diagnostic checklist:
 
 ### Diagnostic Checklist
-
 1. **Are tools being injected?**
    - Add logging: `print(f"Tools injected: {[t['name'] for t in tools]}")`
    - Check: Does the LLM see the tools in its context?
@@ -1198,7 +1164,6 @@ When the LLM isn't using tools correctly, follow this diagnostic checklist:
    - Too much data? Consider truncating large results
 
 ### Common Failure Modes and Fixes
-
 | Symptom | Likely Cause | Fix |
 |---------|--------------|-----|
 | LLM never calls tools | Tool descriptions too vague | Add explicit "When to use" section |
@@ -1210,7 +1175,6 @@ When the LLM isn't using tools correctly, follow this diagnostic checklist:
 | Tool call fails with error | Missing parameter or wrong type | Add parameter validation, improve schema |
 
 ### Logging Best Practices
-
 Add structured logging to trace the full execution flow:
 
 ```python
@@ -1259,9 +1223,7 @@ def chat(self, user_message: str) -> str:
 This logging helps you trace exactly where the flow breaks down.
 
 ## 9. Future Extensions and Scalability
-
 ### Extension 1: Multi-Turn Tool Orchestration
-
 **Current limitation**: Each tool call is independent. The LLM can't easily chain tools (e.g., "Find Prof. Smith, then get his publications, then summarize them").
 
 **Solution**: Implement a "workflow" abstraction where the LLM can specify a sequence of tool calls:
@@ -1287,7 +1249,6 @@ This logging helps you trace exactly where the flow breaks down.
 The MCP Client would parse this, execute steps sequentially, and pass results between steps.
 
 ### Extension 2: Tool Composition
-
 **Concept**: Define high-level tools that combine multiple low-level tools.
 
 **Example**: `get_researcher_profile` tool that internally calls:
@@ -1319,7 +1280,6 @@ def get_researcher_profile(name: str) -> Dict:
 **Benefit**: Reduces the number of tool calls the LLM needs to make, simplifying prompt engineering.
 
 ### Extension 3: Streaming Results
-
 **Current limitation**: Tools return all results at once, which can be slow for large datasets.
 
 **Solution**: Implement streaming tools that yield results incrementally:
@@ -1341,7 +1301,6 @@ def search_people_stream(query: str, role_filter: Optional[str] = None):
 The MCP Client can display results progressively in the UI: "Found Prof. Smith... Found Prof. Jones... Found Dr. Brown..."
 
 ### Extension 4: External API Integration
-
 **Beyond JSON files**: Tools can call external APIs (arXiv, Google Scholar, university databases).
 
 **Example**: `search_arxiv` tool:
@@ -1373,9 +1332,7 @@ def search_arxiv(query: str, max_results: int = 10) -> List[Dict]:
 **Benefit**: The chatbot can access real-time, external data without manually scraping and storing it.
 
 ## 10. Summary: Key Takeaways
-
 ### Architectural Principles
-
 1. **Three-Layer Separation**: 
    - LLM generates text signals
    - Client orchestrates and parses
@@ -1393,28 +1350,24 @@ def search_arxiv(query: str, max_results: int = 10) -> List[Dict]:
    - Explicit tool descriptions in system prompts often outperform implicit API-level tool support
 
 ### Prompt Engineering Essentials
-
 1. **Force Usage Pattern**: Tell the LLM to use tools directly, don't ask permission
 2. **Data Enrichment Rule**: Use tools to complete partial information from RAG
 3. **Conflict Resolution**: Establish clear priority (tools > RAG > general knowledge)
 4. **Clear Descriptions**: "When to use" and "When NOT to use" prevent confusion
 
 ### Performance Optimization
-
 1. **Cache Loaded Data**: Use `@lru_cache` or singleton patterns
 2. **Truncate Results**: Limit tool output to avoid token waste
 3. **Lazy Loading**: Only load data when first accessed
 4. **Migrate to SQL**: When datasets exceed 10k items or queries are slow
 
 ### Debugging Strategy
-
 1. **Log Everything**: Inject, parse, execute, return
 2. **Check Each Layer**: Is the problem in LLM output, parsing, or execution?
 3. **Read Tool Descriptions Critically**: Would a human know when to use this?
 4. **Test Edge Cases**: Missing data, no results, multiple matches
 
 ### The MCP Abstraction Advantage
-
 The key insight of MCP is **separation of concerns**:
 - **LLM**: Decides *when* to use a tool (pattern recognition)
 - **Client**: Decides *how* to execute it (orchestration)
