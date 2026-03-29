@@ -1,24 +1,34 @@
-import type { Node } from '@xyflow/react'
+import type { Node, Edge } from '@xyflow/react'
 import type { NodeData } from '../types/agent'
 import { kindColor, kindIcon } from '../types/agent'
 import './PropertyPanel.css'
 
 interface PropertyPanelProps {
   node: Node<NodeData> | null
+  edge: Edge | null
   onChange: (id: string, data: Partial<NodeData>) => void
   onDelete: (id: string) => void
+  onEdgeChange: (id: string, patch: Partial<Edge>) => void
+  onEdgeDelete: (id: string) => void
 }
 
-export default function PropertyPanel({ node, onChange, onDelete }: PropertyPanelProps) {
-  if (!node) {
+const HANDLES = ['top', 'right', 'bottom', 'left'] as const
+type Handle = typeof HANDLES[number]
+
+export default function PropertyPanel({ node, edge, onChange, onDelete, onEdgeChange, onEdgeDelete }: PropertyPanelProps) {
+  if (!node && !edge) {
     return (
       <aside className="property-panel property-panel-empty">
-        <p>Select a node to edit its properties.</p>
+        <p>Select a node or edge to edit its properties.</p>
       </aside>
     )
   }
 
-  const activeNode = node  // capture after null guard — TypeScript narrows in closures via const
+  if (edge) {
+    return <EdgePanel edge={edge} onEdgeChange={onEdgeChange} onEdgeDelete={onEdgeDelete} />
+  }
+
+  const activeNode = node!
   const { data } = activeNode
   const color = kindColor(data.kind)
   const icon = kindIcon(data.kind)
@@ -268,11 +278,84 @@ export default function PropertyPanel({ node, onChange, onDelete }: PropertyPane
       </div>
 
       <div className="pp-footer">
-        <button className="pp-delete-btn" onClick={() => onDelete(node.id)}>
+        <button className="pp-delete-btn" onClick={() => onDelete(node!.id)}>
           Delete node
         </button>
       </div>
     </aside>
+  )
+}
+
+// ── Edge property panel ────────────────────────────────────────────────────────
+
+function EdgePanel({ edge, onEdgeChange, onEdgeDelete }: {
+  edge: Edge
+  onEdgeChange: (id: string, patch: Partial<Edge>) => void
+  onEdgeDelete: (id: string) => void
+}) {
+  const kind = (edge.data?.kind as string) ?? 'connection'
+  const isReturn = !!(edge.data?.isReturn)
+  const color = (edge.style?.stroke as string) ?? '#94a3b8'
+  const label = isReturn ? 'Response' : kind.charAt(0).toUpperCase() + kind.slice(1).replace('_', ' ')
+
+  return (
+    <aside className="property-panel">
+      <div className="pp-header" style={{ borderLeftColor: color }}>
+        <span className="pp-icon">{isReturn ? '↩' : '→'}</span>
+        <div>
+          <div className="pp-kind">Edge</div>
+          <div className="pp-name">{label}</div>
+        </div>
+      </div>
+
+      <div className="pp-fields">
+        <Field label="From handle">
+          <HandlePicker
+            value={(edge.sourceHandle as Handle) ?? 'right'}
+            onChange={(h) => onEdgeChange(edge.id, { sourceHandle: h })}
+            color={color}
+          />
+        </Field>
+        <Field label="To handle">
+          <HandlePicker
+            value={(edge.targetHandle as Handle) ?? 'left'}
+            onChange={(h) => onEdgeChange(edge.id, { targetHandle: h })}
+            color={color}
+          />
+        </Field>
+      </div>
+
+      <div className="pp-footer">
+        <button className="pp-delete-btn" onClick={() => onEdgeDelete(edge.id)}>
+          Delete edge
+        </button>
+      </div>
+    </aside>
+  )
+}
+
+// ── Handle picker — mini node diagram with 4 clickable sides ─────────────────
+
+function HandlePicker({ value, onChange, color }: {
+  value: Handle
+  onChange: (h: Handle) => void
+  color: string
+}) {
+  return (
+    <div className="pp-handle-picker">
+      {HANDLES.map((h) => (
+        <button
+          key={h}
+          className={`pp-handle-btn pp-handle-btn-${h}${value === h ? ' pp-handle-btn-active' : ''}`}
+          style={value === h ? { borderColor: color, color } : undefined}
+          onClick={() => onChange(h)}
+          title={h}
+        >
+          {h[0].toUpperCase()}
+        </button>
+      ))}
+      <div className="pp-handle-node" style={{ borderColor: color }} />
+    </div>
   )
 }
 

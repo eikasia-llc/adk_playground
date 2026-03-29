@@ -122,3 +122,50 @@
 .pp-delete-btn:hover {
   background: #7f1d1d33;
 }
+
+/* ── Handle picker ── */
+.pp-handle-picker {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 4px auto;
+}
+
+.pp-handle-node {
+  position: absolute;
+  inset: 20px;
+  border: 2px solid;
+  border-radius: 6px;
+  background: #1e2130;
+}
+
+.pp-handle-btn {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #2d3148;
+  background: #12141f;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.pp-handle-btn:hover {
+  border-color: #94a3b8;
+  color: #e2e8f0;
+}
+
+.pp-handle-btn-active {
+  background: #1e2130;
+}
+
+.pp-handle-btn-top    { top: 0;    left: 50%; transform: translateX(-50%); }
+.pp-handle-btn-bottom { bottom: 0; left: 50%; transform: translateX(-50%); }
+.pp-handle-btn-left   { left: 0;   top: 50%;  transform: translateY(-50%); }
+.pp-handle-btn-right  { right: 0;  top: 50%;  transform: translateY(-50%); }

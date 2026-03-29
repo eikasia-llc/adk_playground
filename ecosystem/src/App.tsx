@@ -69,6 +69,7 @@ export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>(INITIAL_NODES)
   const [edges, setEdges, onEdgesChange] = useEdgesState(INITIAL_EDGES)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReturnType<typeof import('@xyflow/react').useReactFlow> | null>(null)
   const idCounter = useRef(1)
@@ -77,6 +78,7 @@ export default function App() {
   useEffect(() => { nodesRef.current = nodes }, [nodes])
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) ?? null
+  const selectedEdge = edges.find((e) => e.id === selectedEdgeId) ?? null
 
   // ── Stuck node detection ───────────────────────────────────────────────────
   // A node is "stuck" (dead-end) if it has no outgoing edges and is not a
@@ -184,10 +186,17 @@ export default function App() {
   // ── Selection ──────────────────────────────────────────────────────────────
   function onNodeClick(_: React.MouseEvent, node: Node<NodeData>) {
     setSelectedNodeId(node.id)
+    setSelectedEdgeId(null)
+  }
+
+  function onEdgeClick(_: React.MouseEvent, edge: Edge) {
+    setSelectedEdgeId(edge.id)
+    setSelectedNodeId(null)
   }
 
   function onPaneClick() {
     setSelectedNodeId(null)
+    setSelectedEdgeId(null)
   }
 
   // ── Property panel updates ─────────────────────────────────────────────────
@@ -203,6 +212,15 @@ export default function App() {
     setNodes((nds) => nds.filter((n) => n.id !== id))
     setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id))
     setSelectedNodeId(null)
+  }
+
+  function handleEdgeChange(id: string, patch: Partial<Edge>) {
+    setEdges((eds) => eds.map((e) => e.id === id ? { ...e, ...patch } : e))
+  }
+
+  function handleEdgeDelete(id: string) {
+    setEdges((eds) => eds.filter((e) => e.id !== id))
+    setSelectedEdgeId(null)
   }
 
   // ── Toolbar actions ────────────────────────────────────────────────────────
@@ -255,6 +273,7 @@ export default function App() {
             onDrop={onDrop}
             onDragOver={onDragOver}
             onNodeClick={onNodeClick}
+            onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
@@ -280,8 +299,11 @@ export default function App() {
 
         <PropertyPanel
           node={selectedNode}
+          edge={selectedEdge}
           onChange={handleNodeChange}
           onDelete={handleNodeDelete}
+          onEdgeChange={handleEdgeChange}
+          onEdgeDelete={handleEdgeDelete}
         />
       </div>
     </div>
