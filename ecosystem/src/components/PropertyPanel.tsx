@@ -309,6 +309,21 @@ function EdgePanel({ edge, onEdgeChange, onEdgeDelete }: {
       </div>
 
       <div className="pp-fields">
+        <Field label="Name">
+          <input
+            value={(edge.data?.name as string) ?? ''}
+            onChange={(e) => onEdgeChange(edge.id, { data: { ...edge.data, name: e.target.value } })}
+            placeholder="Label shown on the canvas"
+          />
+        </Field>
+        <Field label="Description">
+          <textarea
+            rows={3}
+            value={(edge.data?.description as string) ?? ''}
+            onChange={(e) => onEdgeChange(edge.id, { data: { ...edge.data, description: e.target.value } })}
+            placeholder="What does this connection represent?"
+          />
+        </Field>
         <Field label="From handle">
           <HandlePicker
             value={(edge.sourceHandle as Handle) ?? 'right'}

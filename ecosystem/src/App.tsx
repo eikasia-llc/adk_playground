@@ -20,6 +20,7 @@ import './App.css'
 
 import { defaultData, kindColor, edgeStyle } from './types/agent'
 import type { AgentKind, NodeData } from './types/agent'
+import type { PresetMeta } from './utils/codeGenerator'
 
 import LlmAgentNode from './nodes/LlmAgentNode'
 import SequentialAgentNode from './nodes/SequentialAgentNode'
@@ -70,6 +71,7 @@ export default function App() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(INITIAL_EDGES)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
+  const [presetMeta, setPresetMeta] = useState<PresetMeta | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReturnType<typeof import('@xyflow/react').useReactFlow> | null>(null)
   const idCounter = useRef(1)
@@ -249,16 +251,18 @@ export default function App() {
     }
   }
 
-  function handleLoadFile(n: Node<NodeData>[], e: Edge[]) {
+  function handleLoadFile(n: Node<NodeData>[], e: Edge[], meta: PresetMeta) {
     if (nodes.length > 0 && !confirm('Replace current canvas with the loaded preset?')) return
     setNodes(n)
     setEdges(e)
+    setPresetMeta(meta)
     setSelectedNodeId(null)
+    setSelectedEdgeId(null)
   }
 
   return (
     <div className="app">
-      <Toolbar nodes={nodes} edges={edges} onNew={handleNew} onSave={handleSave} onLoad={handleLoad} onLoadFile={handleLoadFile} />
+      <Toolbar nodes={nodes} edges={edges} presetMeta={presetMeta} onNew={handleNew} onSave={handleSave} onLoad={handleLoad} onLoadFile={handleLoadFile} />
 
       <div className="app-body">
         <NodePalette onDragStart={onDragStart} />

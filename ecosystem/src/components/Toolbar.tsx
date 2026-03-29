@@ -1,19 +1,20 @@
 import { useRef } from 'react'
 import type { Node, Edge } from '@xyflow/react'
 import type { NodeData } from '../types/agent'
-import { generatePythonCode } from '../utils/codeGenerator'
+import { generatePythonCode, type PresetMeta } from '../utils/codeGenerator'
 import './Toolbar.css'
 
 interface ToolbarProps {
   nodes: Node<NodeData>[]
   edges: Edge[]
+  presetMeta: PresetMeta | null
   onNew: () => void
   onSave: () => void
   onLoad: () => void
-  onLoadFile: (nodes: Node<NodeData>[], edges: Edge[]) => void
+  onLoadFile: (nodes: Node<NodeData>[], edges: Edge[], meta: PresetMeta) => void
 }
 
-export default function Toolbar({ nodes, edges, onNew, onSave, onLoad, onLoadFile }: ToolbarProps) {
+export default function Toolbar({ nodes, edges, presetMeta, onNew, onSave, onLoad, onLoadFile }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -24,18 +25,33 @@ export default function Toolbar({ nodes, edges, onNew, onSave, onLoad, onLoadFil
       try {
         const json = JSON.parse(e.target?.result as string)
         if (!json.nodes || !json.edges) throw new Error('Missing nodes or edges')
-        onLoadFile(json.nodes, json.edges)
+        onLoadFile(json.nodes, json.edges, json._meta ?? { name: file.name.replace('.json', '') })
       } catch {
         alert('Failed to load preset: invalid JSON format.')
       }
     }
     reader.readAsText(file)
-    // Reset so the same file can be re-loaded
     event.target.value = ''
   }
 
+  function handleExportPreset() {
+    const meta: PresetMeta = presetMeta ?? {
+      name: 'untitled',
+      description: '',
+      created: new Date().toISOString().slice(0, 10),
+    }
+    const preset = { _meta: meta, nodes, edges }
+    const blob = new Blob([JSON.stringify(preset, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${meta.name.toLowerCase().replace(/\s+/g, '_')}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   function handleExport() {
-    const code = generatePythonCode(nodes, edges)
+    const code = generatePythonCode(nodes, edges, presetMeta)
     const blob = new Blob([code], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -71,6 +87,9 @@ export default function Toolbar({ nodes, edges, onNew, onSave, onLoad, onLoadFil
           style={{ display: 'none' }}
           onChange={handleFileChange}
         />
+        <button className="toolbar-btn" onClick={handleExportPreset} title="Export canvas as preset JSON">
+          Export Preset
+        </button>
         <button className="toolbar-btn toolbar-btn-primary" onClick={handleExport} title="Export agent.py">
           Export Python
         </button>

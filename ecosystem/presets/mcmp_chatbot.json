@@ -9,18 +9,30 @@
     {
       "id": "human",
       "type": "Human",
-      "position": { "x": 50, "y": 300 },
+      "position": {
+        "x": 110.61791383219955,
+        "y": 39.50680272108843
+      },
       "data": {
         "kind": "Human",
         "name": "user_query",
         "description": "MCMP website visitor asking about events, people, or research topics via the Streamlit chat interface.",
         "prompt": "Ask me about MCMP events, researchers, or philosophy topics."
-      }
+      },
+      "measured": {
+        "width": 354,
+        "height": 77
+      },
+      "selected": false,
+      "dragging": false
     },
     {
       "id": "leopold",
       "type": "LlmAgent",
-      "position": { "x": 340, "y": 300 },
+      "position": {
+        "x": 194.18934240362807,
+        "y": 268.87188208616783
+      },
       "data": {
         "kind": "LlmAgent",
         "name": "leopold",
@@ -28,64 +40,130 @@
         "description": "Leopold — MCMP Philosophy Assistant. Answers questions about events, people, and research using MCP-backed structured data tools.",
         "instruction": "You are Leopold, the MCMP Philosophy Assistant. Use the available tools to answer questions about MCMP events, people, and research topics. Always use tools for structured data queries rather than relying on general knowledge.",
         "output_key": "response"
-      }
+      },
+      "measured": {
+        "width": 171,
+        "height": 77
+      },
+      "selected": false,
+      "dragging": false
     },
     {
       "id": "personality",
       "type": "Context",
-      "position": { "x": 340, "y": 530 },
+      "position": {
+        "x": -208.8378684807256,
+        "y": 225.2721088435374
+      },
       "data": {
         "kind": "Context",
         "name": "leopold_personality",
         "description": "Leopold persona definition: identity, philosophical tone, scope boundaries, and behavioral guidelines injected into the system prompt.",
         "content": "prompts/personality.md — Leopold's identity, tone, and response constraints. Separates chatbot character from engine logic."
-      }
+      },
+      "measured": {
+        "width": 192,
+        "height": 155
+      },
+      "selected": false,
+      "dragging": false,
+      "width": 192,
+      "height": 155,
+      "resizing": false
     },
     {
       "id": "mcp_tools",
       "type": "Tool",
-      "position": { "x": 660, "y": 300 },
+      "position": {
+        "x": 155.39682539682545,
+        "y": 465.47052154195006
+      },
       "data": {
         "kind": "Tool",
         "name": "mcp_tools",
         "description": "MCP tool registry exposed to Leopold: search_people, search_research, get_events, search_graph. Each queries the JSON data files or institutional graph.",
         "code": "    # src/mcp/tools.py\n    # search_people(query) — people.json\n    # search_research(query) — research.json\n    # get_events(query) — raw_events.json\n    # search_graph(query) — mcmp_jgraph.json"
-      }
+      },
+      "measured": {
+        "width": 230,
+        "height": 137
+      },
+      "selected": false,
+      "dragging": false,
+      "width": 230,
+      "height": 137,
+      "resizing": false
     },
     {
       "id": "db_json",
       "type": "Database",
-      "position": { "x": 980, "y": 200 },
+      "position": {
+        "x": 302,
+        "y": 688
+      },
       "data": {
         "kind": "Database",
         "name": "json_data_files",
         "description": "Structured JSON datasets: people.json, research.json, raw_events.json. Accumulated monotonically by the scraper. Source of truth for all MCP queries.",
         "db_type": "JSON Files",
         "connection": "data/"
-      }
+      },
+      "measured": {
+        "width": 164,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "width": 164,
+      "height": 89,
+      "resizing": false
     },
     {
       "id": "db_graph",
       "type": "Database",
-      "position": { "x": 980, "y": 430 },
+      "position": {
+        "x": 78,
+        "y": 686
+      },
       "data": {
         "kind": "Database",
         "name": "institutional_graph",
         "description": "Knowledge graph linking MCMP people to organizational units (chairs, leadership) and research topics. Stored as mcmp_graph.md + mcmp_jgraph.json.",
         "db_type": "Graph (JSON + MD)",
         "connection": "data/graph/"
-      }
+      },
+      "measured": {
+        "width": 182,
+        "height": 91
+      },
+      "selected": false,
+      "dragging": false,
+      "width": 182,
+      "height": 91,
+      "resizing": false
     },
     {
       "id": "update_dataset",
       "type": "Tool",
-      "position": { "x": 340, "y": 760 },
+      "position": {
+        "x": 164.9342403628118,
+        "y": 884.4693877551018
+      },
       "data": {
         "kind": "Tool",
         "name": "update_dataset",
         "description": "scripts/update_dataset.py — scrapes MCMP website (events, people, research) and rebuilds the institutional graph. Runs as a plain Python script with no LLM orchestrator.",
         "code": "    # scripts/update_dataset.py\n    # scrape_events()    → data/raw_events.json\n    # scrape_people()    → data/people.json\n    # scrape_research()  → data/research.json\n    # build_graph()      → data/graph/"
-      }
+      },
+      "measured": {
+        "width": 230,
+        "height": 147
+      },
+      "selected": false,
+      "dragging": false,
+      "width": 230,
+      "height": 147,
+      "resizing": false
     }
   ],
   "edges": [
@@ -93,85 +171,181 @@
       "id": "e-human-leopold",
       "source": "human",
       "target": "leopold",
-      "sourceHandle": "right",
+      "sourceHandle": "left",
       "targetHandle": "left",
       "type": "flow",
-      "data": { "kind": "delegate", "isObservation": false },
-      "style": { "stroke": "#f97316" },
-      "markerEnd": { "type": "arrowclosed", "color": "#f97316" }
+      "data": {
+        "kind": "delegate",
+        "isObservation": false
+      },
+      "style": {
+        "stroke": "#f97316"
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "selected": false
     },
     {
       "id": "e-ret-leopold-human",
       "source": "leopold",
       "target": "human",
-      "sourceHandle": "bottom",
-      "targetHandle": "bottom",
+      "sourceHandle": "right",
+      "targetHandle": "right",
       "type": "flow",
-      "data": { "kind": "response", "isObservation": false, "isReturn": true },
-      "style": { "stroke": "#f97316", "strokeDasharray": "4,3", "opacity": 0.55 },
-      "markerEnd": { "type": "arrowclosed", "color": "#f97316" }
+      "data": {
+        "kind": "response",
+        "isObservation": false,
+        "isReturn": true
+      },
+      "style": {
+        "stroke": "#f97316",
+        "strokeDasharray": "4,3",
+        "opacity": 0.55
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "selected": false
     },
     {
       "id": "e-leopold-mcp_tools",
       "source": "leopold",
       "target": "mcp_tools",
-      "sourceHandle": "right",
+      "sourceHandle": "left",
       "targetHandle": "left",
       "type": "flow",
-      "data": { "kind": "tool", "isObservation": false },
-      "style": { "stroke": "#14b8a6", "strokeDasharray": "6,4" },
-      "markerEnd": { "type": "arrowclosed", "color": "#14b8a6" }
+      "data": {
+        "kind": "tool",
+        "isObservation": false
+      },
+      "style": {
+        "stroke": "#14b8a6",
+        "strokeDasharray": "6,4"
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#14b8a6"
+      },
+      "selected": false
     },
     {
       "id": "e-ret-mcp_tools-leopold",
       "source": "mcp_tools",
       "target": "leopold",
-      "sourceHandle": "bottom",
-      "targetHandle": "bottom",
+      "sourceHandle": "right",
+      "targetHandle": "right",
       "type": "flow",
-      "data": { "kind": "response", "isObservation": false, "isReturn": true },
-      "style": { "stroke": "#14b8a6", "strokeDasharray": "4,3", "opacity": 0.55 },
-      "markerEnd": { "type": "arrowclosed", "color": "#14b8a6" }
+      "data": {
+        "kind": "response",
+        "isObservation": false,
+        "isReturn": true
+      },
+      "style": {
+        "stroke": "#14b8a6",
+        "strokeDasharray": "4,3",
+        "opacity": 0.55
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#14b8a6"
+      },
+      "selected": false
     },
     {
       "id": "e-leopold-personality",
       "source": "leopold",
       "target": "personality",
-      "data": { "kind": "sub_agent", "isObservation": true },
-      "style": { "stroke": "#94a3b8" },
-      "markerEnd": { "type": "arrowclosed", "color": "#94a3b8" }
+      "data": {
+        "kind": "sub_agent",
+        "isObservation": true
+      },
+      "style": {
+        "stroke": "#94a3b8"
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#94a3b8"
+      },
+      "selected": false,
+      "sourceHandle": "left",
+      "targetHandle": "right"
     },
     {
       "id": "e-mcp_tools-db_json",
       "source": "mcp_tools",
       "target": "db_json",
-      "data": { "kind": "sub_agent", "isObservation": true },
-      "style": { "stroke": "#94a3b8" },
-      "markerEnd": { "type": "arrowclosed", "color": "#94a3b8" }
+      "data": {
+        "kind": "sub_agent",
+        "isObservation": true
+      },
+      "style": {
+        "stroke": "#94a3b8"
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#94a3b8"
+      },
+      "selected": false,
+      "sourceHandle": "bottom"
     },
     {
       "id": "e-mcp_tools-db_graph",
       "source": "mcp_tools",
       "target": "db_graph",
-      "data": { "kind": "sub_agent", "isObservation": true },
-      "style": { "stroke": "#94a3b8" },
-      "markerEnd": { "type": "arrowclosed", "color": "#94a3b8" }
+      "data": {
+        "kind": "sub_agent",
+        "isObservation": true
+      },
+      "style": {
+        "stroke": "#94a3b8"
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#94a3b8"
+      },
+      "selected": false,
+      "sourceHandle": "bottom"
     },
     {
       "id": "e-update_dataset-db_json",
       "source": "update_dataset",
       "target": "db_json",
-      "data": { "kind": "sub_agent", "isObservation": true },
-      "style": { "stroke": "#94a3b8" },
-      "markerEnd": { "type": "arrowclosed", "color": "#94a3b8" }
+      "data": {
+        "kind": "sub_agent",
+        "isObservation": true
+      },
+      "style": {
+        "stroke": "#94a3b8"
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#94a3b8"
+      },
+      "selected": false,
+      "sourceHandle": "top",
+      "targetHandle": "bottom"
     },
     {
       "id": "e-update_dataset-db_graph",
       "source": "update_dataset",
       "target": "db_graph",
-      "data": { "kind": "sub_agent", "isObservation": true },
-      "style": { "stroke": "#94a3b8" },
-      "markerEnd": { "type": "arrowclosed", "color": "#94a3b8" }
+      "data": {
+        "kind": "sub_agent",
+        "isObservation": true
+      },
+      "style": {
+        "stroke": "#94a3b8"
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#94a3b8"
+      },
+      "selected": false,
+      "sourceHandle": "top",
+      "targetHandle": "bottom"
     }
   ]
 }

@@ -120,20 +120,51 @@ The left sidebar organises nodes into collapsible groups. Click a group header t
 - **Tool edge** (teal dashed, particles): any agent → Tool or MCP Toolset.
 - **Information edge** (gray, no particles): any agent → Database or Context.
 
+Every active flow connection also produces a **return edge** — a separate dashed arrow running in the opposite direction via the `bottom` handle on both nodes, representing the response or result flowing back. Both directions carry animated particles at the same speed and brightness.
+
+### Editing edges
+Click any edge to open it in the right property panel. You can edit:
+- **Name** — short label rendered as a pill at the edge midpoint on the canvas.
+- **Description** — longer annotation stored on the edge, visible only in the panel.
+- **From handle** / **To handle** — which side of the node the edge departs from / arrives at (`top`, `right`, `bottom`, `left`). Change these to untangle messy crossings. The handle picker shows a mini node diagram with four buttons.
+
 ### Stuck node indicator
 Any non-Human, non-information node with no outgoing edges is flagged with a **pulsing amber ring**. This means the pipeline has a dead-end at that node — flow enters but cannot continue. Connect an outgoing edge to clear the warning.
 
-### Saving & loading
+### Saving & loading (browser)
 - **Save** stores the current canvas as JSON in `localStorage`.
-- **Load** restores the last saved design.
+- **Load** restores the last saved design from `localStorage`.
+
+### Preset files
+Preset files are named JSON files in `ecosystem/presets/`. They carry a `_meta` block plus the full `nodes` and `edges` arrays — including every node's pixel position, size, and all edge handle assignments.
+
+```json
+{
+  "_meta": {
+    "name": "My Pipeline",
+    "description": "One-sentence summary.",
+    "source_repo": "my_repo",
+    "created": "2026-03-28"
+  },
+  "nodes": [ ... ],
+  "edges": [ ... ]
+}
+```
+
+**Loading a preset:** Click **Load File** → select the `.json` file. The canvas is replaced with the saved layout.
+
+**Saving a layout back to a preset:** After loading a preset and arranging nodes and edges to your liking, click **Export Preset**. The browser downloads a `.json` named after `_meta.name`, containing the current canvas state (positions, sizes, handle assignments, edge labels) with the original `_meta` intact. Replace the file in `ecosystem/presets/` to persist the layout.
+
+The round-trip is: **Load File** → edit on canvas → **Export Preset** → overwrite the file.
 
 ### Exporting Python
-Click **Export Python** in the toolbar — the browser downloads an `agent.py` file containing valid ADK code matching your design. The generator:
-1. Topologically sorts nodes (leaves first).
-2. Emits tool function defs and MCP toolset factories first.
-3. Emits agent instantiations in dependency order.
-4. Assigns `root_agent` to the top-level workflow agent.
-5. Generates only the imports needed for the types you used.
+Click **Export Python** in the toolbar — the browser downloads an `agent.py` file. When a preset with `_meta` is loaded, the file header includes the preset name, description, and source repo as a module docstring. The generator:
+1. Emits a module docstring from `_meta` (name, description, source repo, date).
+2. Topologically sorts nodes (leaves first).
+3. Emits tool function defs and MCP toolset factories.
+4. Emits agent instantiations in dependency order.
+5. Assigns `root_agent` to the top-level workflow agent.
+6. Generates only the imports needed for the node types used.
 
 ## File Structure
 ```
@@ -179,6 +210,6 @@ ecosystem/
 | **New information node type** | Same as above, plus add the kind to `INFO_KINDS` in `App.tsx` so its edges skip particles |
 | **New model option** | Add to the `<select>` in `PropertyPanel.tsx` |
 | **Edge latency / speed** | Set `data.speed` (seconds) on an edge — `FlowEdge.tsx` reads it to control particle travel time |
-| **Persist to file** | Replace `localStorage` in Toolbar with a `fetch` call to a local server |
+| **Persist to file** | Use **Export Preset** — saves full layout as a `.json` preset file |
 | **Load existing agent.py** | Write a Python → graph JSON parser (reverse of `codeGenerator.ts`) |
 | **Auto-layout** | Integrate `@dagrejs/dagre` to arrange nodes automatically after import |
