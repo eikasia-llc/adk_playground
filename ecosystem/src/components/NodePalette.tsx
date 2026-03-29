@@ -10,7 +10,7 @@ interface NodePaletteProps {
 const WORKFLOW_KINDS: AgentKind[] = ['SequentialAgent', 'ParallelAgent', 'LoopAgent', 'Evaluator']
 const WORKFLOW_COLOR = '#6366f1'
 
-const TOOL_KINDS: AgentKind[] = ['Tool', 'McpToolset']
+const TOOL_KINDS: AgentKind[] = ['Tool', 'McpToolset', 'Script']
 const TOOL_COLOR = '#6b7280'
 
 const INFO_KINDS: AgentKind[] = ['Database', 'Context']
@@ -101,7 +101,7 @@ export default function NodePalette({ onDragStart }: NodePaletteProps) {
           <span className="palette-icon">🧰</span>
           <div className="palette-text">
             <div className="palette-label">Tools</div>
-            <div className="palette-desc">Tool, MCP Toolset</div>
+            <div className="palette-desc">Tool, MCP Toolset, Script</div>
           </div>
           <span className="palette-group-chevron" style={{ transform: toolsOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
         </button>

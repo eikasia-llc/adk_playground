@@ -75,6 +75,7 @@ export function generatePythonCode(nodes: Node<NodeData>[], edges: Edge[], meta?
   const usedKinds = new Set(nodes.map((n) => n.data.kind))
   const hasTool = usedKinds.has('Tool')
   const hasMcp = usedKinds.has('McpToolset')
+  const hasScript = usedKinds.has('Script')
 
   const lines: string[] = []
 
@@ -120,6 +121,24 @@ export function generatePythonCode(nodes: Node<NodeData>[], edges: Edge[], meta?
   }
   lines.push('')
 
+  // ── Standalone scripts (not ADK classes — emit as subprocess stubs) ────────
+  if (hasScript) {
+    lines.push('import subprocess')
+    lines.push('')
+    for (const id of sortedIds) {
+      const node = nodeById[id]
+      if (!node || node.data.kind !== 'Script') continue
+      const d = node.data
+      const varName = pyVar(d.name)
+      lines.push(`def run_${varName}():`)
+      lines.push(`    """${d.description || d.name}`)
+      lines.push(`    Invoked via: ${d.command}`)
+      lines.push(`    """`)
+      lines.push(`    subprocess.run(['${d.command.replace(/'/g, "\\'")}'], check=True)`)
+      lines.push('')
+    }
+  }
+
   // ── Tool function definitions ─────────────────────────────────────────────
   for (const id of sortedIds) {
     const node = nodeById[id]
@@ -160,7 +179,7 @@ export function generatePythonCode(nodes: Node<NodeData>[], edges: Edge[], meta?
     const node = nodeById[id]
     if (!node) continue
     const { kind } = node.data
-    if (kind === 'Tool' || kind === 'McpToolset') continue
+    if (kind === 'Tool' || kind === 'McpToolset' || kind === 'Script') continue
 
     const isRoot = roots.length === 1 && roots[0].id === id
     const varName = isRoot ? 'root_agent' : pyVar(node.data.name)

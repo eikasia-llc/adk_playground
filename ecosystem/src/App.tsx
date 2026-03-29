@@ -28,6 +28,7 @@ import ParallelAgentNode from './nodes/ParallelAgentNode'
 import LoopAgentNode from './nodes/LoopAgentNode'
 import ToolNode from './nodes/ToolNode'
 import McpToolsetNode from './nodes/McpToolsetNode'
+import ScriptNode from './nodes/ScriptNode'
 import DatabaseNode from './nodes/DatabaseNode'
 import ContextNode from './nodes/ContextNode'
 import HumanNode from './nodes/HumanNode'
@@ -47,6 +48,7 @@ const nodeTypes: NodeTypes = {
   LoopAgent: LoopAgentNode,
   Tool: ToolNode,
   McpToolset: McpToolsetNode,
+  Script: ScriptNode,
   Database: DatabaseNode,
   Context: ContextNode,
   Human: HumanNode,
@@ -61,7 +63,7 @@ const INITIAL_NODES: Node<NodeData>[] = []
 const INITIAL_EDGES: Edge[] = []
 
 // Kinds that sit at the boundary of the pipeline and don't need outgoing edges
-const TERMINAL_KINDS: AgentKind[] = ['Human', 'Database', 'Context']
+const TERMINAL_KINDS: AgentKind[] = ['Human', 'Database', 'Context', 'Script']
 
 // Kinds whose edges carry data/reference rather than active flow (no particles)
 const INFO_KINDS: AgentKind[] = ['Database', 'Context']
@@ -128,7 +130,10 @@ export default function App() {
         markerEnd: { type: 'arrowclosed' as const, color: style.color },
       }
 
-      if (!isObservation) {
+      // Scripts are standalone — no LLM calls them, so no return edge
+      const isScript = sourceKind === 'Script' || targetKind === 'Script'
+
+      if (!isObservation && !isScript) {
         // Paired return edge: routes via bottom handles so it curves below the forward edge
         const returnEdge: Edge = {
           id: `e-ret-${connection.target}-${connection.source}-${ts}`,
@@ -149,6 +154,7 @@ export default function App() {
       } else {
         setEdges((eds) => addEdge(edge, eds))
       }
+
     },
     [setEdges],
   )

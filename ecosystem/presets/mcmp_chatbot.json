@@ -144,16 +144,17 @@
     },
     {
       "id": "update_dataset",
-      "type": "Tool",
+      "type": "Script",
       "position": {
         "x": 164.9342403628118,
         "y": 884.4693877551018
       },
       "data": {
-        "kind": "Tool",
+        "kind": "Script",
         "name": "update_dataset",
-        "description": "scripts/update_dataset.py — scrapes MCMP website (events, people, research) and rebuilds the institutional graph. Runs as a plain Python script with no LLM orchestrator.",
-        "code": "    # scripts/update_dataset.py\n    # scrape_events()    → data/raw_events.json\n    # scrape_people()    → data/people.json\n    # scrape_research()  → data/research.json\n    # build_graph()      → data/graph/"
+        "description": "Scrapes MCMP website (events, people, research) and rebuilds the institutional graph. Runs as a plain Python script with no LLM orchestrator.",
+        "command": "python scripts/update_dataset.py",
+        "code": "    # scrape_events()    → data/raw_events.json\n    # scrape_people()    → data/people.json\n    # scrape_research()  → data/research.json\n    # build_graph()      → data/graph/"
       },
       "measured": {
         "width": 230,

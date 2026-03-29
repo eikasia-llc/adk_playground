@@ -152,6 +152,35 @@ export default function PropertyPanel({ node, edge, onChange, onDelete, onEdgeCh
           </>
         )}
 
+        {/* ── Script ── */}
+        {data.kind === 'Script' && (
+          <>
+            <Field label="Description">
+              <input
+                value={data.description}
+                onChange={(e) => update({ description: e.target.value } as Partial<NodeData>)}
+                placeholder="What does this script do?"
+              />
+            </Field>
+            <Field label="Command">
+              <input
+                value={data.command}
+                onChange={(e) => update({ command: e.target.value } as Partial<NodeData>)}
+                placeholder="e.g. python scripts/update_dataset.py"
+              />
+            </Field>
+            <Field label="Code (reference)">
+              <textarea
+                value={data.code}
+                onChange={(e) => update({ code: e.target.value } as Partial<NodeData>)}
+                rows={6}
+                placeholder="    # key functions or logic for reference"
+                className="pp-code"
+              />
+            </Field>
+          </>
+        )}
+
         {/* ── McpToolset ── */}
         {data.kind === 'McpToolset' && (
           <>

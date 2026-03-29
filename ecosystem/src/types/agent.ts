@@ -5,6 +5,7 @@ export type AgentKind =
   | 'LoopAgent'
   | 'Tool'
   | 'McpToolset'
+  | 'Script'
   | 'Database'
   | 'Context'
   | 'Human'
@@ -95,6 +96,16 @@ export interface ContextData extends Record<string, unknown> {
   content: string
 }
 
+export interface ScriptData extends Record<string, unknown> {
+  kind: 'Script'
+  name: string
+  description: string
+  /** Path or command used to invoke the script */
+  command: string
+  /** Python or shell code body for reference */
+  code: string
+}
+
 export type NodeData =
   | LlmAgentData
   | SequentialAgentData
@@ -102,6 +113,7 @@ export type NodeData =
   | LoopAgentData
   | ToolData
   | McpToolsetData
+  | ScriptData
   | DatabaseData
   | ContextData
   | HumanData
@@ -159,6 +171,13 @@ export const PALETTE_ITEMS: PaletteItem[] = [
     description: 'External MCP server integration',
     color: '#14b8a6',
     icon: '🔌',
+  },
+  {
+    kind: 'Script',
+    label: 'Script',
+    description: 'Standalone script — runs independently, not called by an LLM',
+    color: '#f59e0b',
+    icon: '📜',
   },
   {
     kind: 'Database',
@@ -223,6 +242,14 @@ export function defaultData(kind: AgentKind): NodeData {
         command: 'mcp-server-fetch',
         args: '',
         tool_filter: '',
+      }
+    case 'Script':
+      return {
+        kind,
+        name: 'my_script',
+        description: '',
+        command: 'python scripts/my_script.py',
+        code: '    # script logic here',
       }
     case 'Database':
       return {
