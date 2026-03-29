@@ -10,7 +10,7 @@ export type AgentKind =
   | 'Human'
   | 'Evaluator'
 
-export type EdgeKind = 'sub_agent' | 'delegate' | 'tool'
+export type EdgeKind = 'sub_agent' | 'delegate' | 'tool' | 'response'
 
 // ─── Per-node data shapes ────────────────────────────────────────────────────
 
@@ -274,8 +274,6 @@ export type EdgeStyle = {
   dashed: boolean
   animated: boolean
   kind: EdgeKind
-  /** True for request-response pairs: arrowhead rendered at both ends */
-  bidirectional: boolean
 }
 
 const TOOL_KINDS: AgentKind[] = ['Tool', 'McpToolset']
@@ -283,17 +281,17 @@ const WORKFLOW_KINDS: AgentKind[] = ['SequentialAgent', 'ParallelAgent', 'LoopAg
 
 export function edgeStyle(sourceKind?: AgentKind, targetKind?: AgentKind): EdgeStyle {
   if (targetKind && TOOL_KINDS.includes(targetKind)) {
-    // Any → Tool/MCP: teal dashed, bidirectional (tool returns result)
-    return { color: '#14b8a6', dashed: true, animated: false, kind: 'tool', bidirectional: true }
+    // Any → Tool/MCP: teal dashed
+    return { color: '#14b8a6', dashed: true, animated: false, kind: 'tool' }
   }
   if (sourceKind === 'LlmAgent') {
-    // LLM → agent: orange solid, bidirectional (delegated agent returns result)
-    return { color: '#f97316', dashed: false, animated: false, kind: 'delegate', bidirectional: true }
+    // LLM → agent (workflow or another LLM): orange solid
+    return { color: '#f97316', dashed: false, animated: false, kind: 'delegate' }
   }
   if (sourceKind && WORKFLOW_KINDS.includes(sourceKind)) {
-    // Workflow → sub-agent: indigo animated, bidirectional (sub-agent returns output)
-    return { color: '#6366f1', dashed: false, animated: true, kind: 'sub_agent', bidirectional: true }
+    // Workflow → sub-agent: indigo animated
+    return { color: '#6366f1', dashed: false, animated: true, kind: 'sub_agent' }
   }
-  // Fallback (e.g. Human → LlmAgent): bidirectional (LLM sends response back)
-  return { color: '#94a3b8', dashed: false, animated: false, kind: 'sub_agent', bidirectional: true }
+  // Fallback
+  return { color: '#94a3b8', dashed: false, animated: false, kind: 'sub_agent' }
 }

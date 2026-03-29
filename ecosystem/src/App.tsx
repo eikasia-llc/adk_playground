@@ -110,9 +110,10 @@ export default function App() {
         (sourceKind !== undefined && INFO_KINDS.includes(sourceKind)) ||
         (targetKind !== undefined && INFO_KINDS.includes(targetKind))
 
+      const ts = Date.now()
       const edge: Edge = {
         ...connection,
-        id: `e-${connection.source}-${connection.target}-${Date.now()}`,
+        id: `e-${connection.source}-${connection.target}-${ts}`,
         type: isObservation ? undefined : 'flow',
         data: { kind: style.kind, isObservation },
         style: {
@@ -120,11 +121,26 @@ export default function App() {
           strokeDasharray: style.dashed ? '6,4' : undefined,
         },
         markerEnd: { type: 'arrowclosed' as const, color: style.color },
-        markerStart: (!isObservation && style.bidirectional)
-          ? { type: 'arrowclosed' as const, color: style.color }
-          : undefined,
       }
-      setEdges((eds) => addEdge(edge, eds))
+
+      if (!isObservation) {
+        // Paired return edge: same color, dashed, semi-transparent, no particles
+        const returnEdge: Edge = {
+          id: `e-ret-${connection.target}-${connection.source}-${ts}`,
+          source: connection.target!,
+          target: connection.source!,
+          data: { kind: 'response', isObservation: false },
+          style: {
+            stroke: style.color,
+            strokeDasharray: '4,3',
+            opacity: 0.45,
+          },
+          markerEnd: { type: 'arrowclosed' as const, color: style.color },
+        }
+        setEdges((eds) => addEdge(edge, eds).concat(returnEdge))
+      } else {
+        setEdges((eds) => addEdge(edge, eds))
+      }
     },
     [setEdges],
   )
