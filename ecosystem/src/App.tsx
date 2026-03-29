@@ -124,16 +124,17 @@ export default function App() {
       }
 
       if (!isObservation) {
-        // Paired return edge: same color, dashed, semi-transparent, no particles
+        // Paired return edge: same color, dimmer particles, dashed line
         const returnEdge: Edge = {
           id: `e-ret-${connection.target}-${connection.source}-${ts}`,
           source: connection.target!,
           target: connection.source!,
-          data: { kind: 'response', isObservation: false },
+          type: 'flow',
+          data: { kind: 'response', isObservation: false, isReturn: true },
           style: {
             stroke: style.color,
             strokeDasharray: '4,3',
-            opacity: 0.45,
+            opacity: 0.55,
           },
           markerEnd: { type: 'arrowclosed' as const, color: style.color },
         }

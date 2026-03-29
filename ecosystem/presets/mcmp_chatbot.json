@@ -102,8 +102,9 @@
       "id": "e-ret-leopold-human",
       "source": "leopold",
       "target": "human",
-      "data": { "kind": "response", "isObservation": false },
-      "style": { "stroke": "#f97316", "strokeDasharray": "4,3", "opacity": 0.45 },
+      "type": "flow",
+      "data": { "kind": "response", "isObservation": false, "isReturn": true },
+      "style": { "stroke": "#f97316", "strokeDasharray": "4,3", "opacity": 0.55 },
       "markerEnd": { "type": "arrowclosed", "color": "#f97316" }
     },
     {
@@ -119,8 +120,9 @@
       "id": "e-ret-mcp_tools-leopold",
       "source": "mcp_tools",
       "target": "leopold",
-      "data": { "kind": "response", "isObservation": false },
-      "style": { "stroke": "#14b8a6", "strokeDasharray": "4,3", "opacity": 0.45 },
+      "type": "flow",
+      "data": { "kind": "response", "isObservation": false, "isReturn": true },
+      "style": { "stroke": "#14b8a6", "strokeDasharray": "4,3", "opacity": 0.55 },
       "markerEnd": { "type": "arrowclosed", "color": "#14b8a6" }
     },
     {
