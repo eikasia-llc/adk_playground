@@ -133,6 +133,8 @@ Starts both servers in the background and prints their PIDs. Press `Ctrl+C` to s
 | `.git/index.lock: File exists` | Interrupted git operation | `rm .git/index.lock` |
 | `400 API_KEY_INVALID` | Stale process, key not reloaded | Restart uvicorn (`Ctrl+C` then re-run) |
 | CORS error in browser | Frontend origin not allowed | Check `allow_origins` in `main.py` |
+| `next.config.ts` not supported | Next.js 14 doesn't support `.ts` config | Rename to `next.config.mjs` and remove TypeScript types |
+| `/ 200` but browser shows nothing | Next.js still compiling on first load | Wait for `✓ Compiled /` in terminal, then refresh |
 
 ### Rotating the API Key
 
@@ -173,6 +175,7 @@ chatbot_template/
     │   └── app/
     │       └── page.tsx
     ├── package.json
+    ├── next.config.mjs        # use .mjs — Next.js 14 does not support .ts config
     └── .env.local             # NEXT_PUBLIC_BACKEND_URL (git-ignored)
 ```
 
