@@ -139,38 +139,66 @@ body {
   margin-bottom: 0.2rem;
 }
 
-/* ---- Number selector ---- */
-.a2ui-number-selector {
+/* ---- RPS selector ---- */
+.a2ui-rps-selector {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
-.number-selector-prompt {
+.rps-selector-prompt {
   font-size: 0.9rem;
   color: #444;
+  font-weight: 500;
 }
 
-.number-selector-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 2.5rem);
-  gap: 0.4rem;
+.rps-selector-grid {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
-.number-selector-btn {
-  width: 2.5rem;
-  height: 2.5rem;
+.rps-btn {
+  padding: 0.6rem 1.1rem;
   border: 2px solid #0070f3;
-  border-radius: 0.4rem;
+  border-radius: 0.6rem;
   background: #fff;
   color: #0070f3;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
 }
 
-.number-selector-btn:hover {
+.rps-btn:hover {
   background: #0070f3;
   color: #fff;
+  transform: scale(1.06);
+}
+
+.rps-btn:active {
+  transform: scale(0.97);
+}
+
+/* ---- Sealed box ---- */
+.a2ui-sealed-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  border: 2px dashed #aaa;
+  border-radius: 0.6rem;
+  background: #f9f9f9;
+  color: #555;
+  font-size: 0.95rem;
+  font-style: italic;
+  user-select: none;
+}
+
+.sealed-box-icon {
+  font-size: 1.3rem;
+}
+
+.sealed-box-label {
+  flex: 1;
 }

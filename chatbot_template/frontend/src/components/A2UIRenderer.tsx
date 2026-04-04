@@ -62,23 +62,39 @@ function ComponentNode({
         </ul>
       );
 
-    case "number_selector":
+    case "rps_selector": {
+      const options = [
+        { label: "🪨 Rock",     action: "selected_rps_rock" },
+        { label: "📄 Paper",    action: "selected_rps_paper" },
+        { label: "✂️ Scissors", action: "selected_rps_scissors" },
+      ];
       return (
-        <div className="a2ui-number-selector">
+        <div className="a2ui-rps-selector">
           {component.prompt && (
-            <p className="number-selector-prompt">{component.prompt}</p>
+            <p className="rps-selector-prompt">{component.prompt}</p>
           )}
-          <div className="number-selector-grid">
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+          <div className="rps-selector-grid">
+            {options.map((opt) => (
               <button
-                key={n}
-                className="number-selector-btn"
-                onClick={() => onAction?.(`selected_number_${n}`)}
+                key={opt.action}
+                className="rps-btn"
+                onClick={() => onAction?.(opt.action)}
               >
-                {n}
+                {opt.label}
               </button>
             ))}
           </div>
+        </div>
+      );
+    }
+
+    case "sealed_box":
+      return (
+        <div className="a2ui-sealed-box">
+          <span className="sealed-box-icon">🔒</span>
+          <span className="sealed-box-label">
+            {component.label ?? "Rocky's choice is sealed!"}
+          </span>
         </div>
       );
 

@@ -14,7 +14,8 @@ export type A2UIComponent =
   | { type: "button"; label: string; action: string }
   | { type: "card"; title: string; subtitle?: string; body: A2UIComponent[] }
   | { type: "list"; items: string[] }
-  | { type: "number_selector"; prompt?: string };
+  | { type: "rps_selector"; prompt?: string }
+  | { type: "sealed_box"; label?: string };
 
 export type Message = {
   id: string;
