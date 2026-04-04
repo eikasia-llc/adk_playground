@@ -4,7 +4,7 @@
 - label: [normative, template, backend, frontend]
 - injection: directive
 - volatility: stable
-- last_checked: 2026-04-04
+- last_checked: 2026-04-05
 <!-- content -->
 
 ## Overview
@@ -45,6 +45,104 @@ The core principle is: **the ADK agent ecosystem is the backend; a JS/TS framewo
 4. Agent emits an A2UI JSON payload (or plain text) in its final response.
 5. FastAPI returns the payload to the frontend.
 6. Frontend A2UI renderer maps the JSON component tree to native React widgets.
+
+---
+
+## Local Development Setup
+
+### Prerequisites
+
+| Tool | Min version | Check |
+| :--- | :--- | :--- |
+| Python | 3.10+ | `python3 --version` |
+| Node.js | 18+ | `node --version` |
+| npm | 9+ | `npm --version` |
+
+### Backend Setup (first time)
+
+```bash
+cd chatbot_template/backend
+
+# 1. Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate        # macOS/Linux
+# .venv\Scripts\activate         # Windows
+
+# 2. Upgrade pip (avoids build errors)
+pip install --upgrade pip
+
+# 3. Install dependencies
+#    grpcio compiles from C — takes 5-15 min on first install
+#    pyarrow requires a pre-built binary wheel to avoid cmake errors
+pip install --only-binary=:all: pyarrow
+pip install -r requirements.txt
+
+# 4. Set up environment variables
+cp .env.example .env
+# Edit .env and set GOOGLE_API_KEY=AIzaSy...
+```
+
+### Backend: Run
+
+```bash
+cd chatbot_template/backend
+source .venv/bin/activate
+uvicorn main:app --reload --port 8080
+```
+
+Verify it is up: `http://localhost:8080/health` → `{"status":"ok","agent":"chatbot_agent"}`
+
+### Frontend Setup (first time)
+
+```bash
+cd chatbot_template/frontend
+
+# 1. Install dependencies
+npm install
+
+# 2. Set up environment variables
+cp .env.local.example .env.local
+# .env.local already points to http://localhost:8080 — no edits needed for local dev
+```
+
+### Frontend: Run
+
+```bash
+cd chatbot_template/frontend
+npm run dev
+```
+
+Open **http://localhost:3000**.
+
+### Run Both at Once (convenience script)
+
+```bash
+cd chatbot_template
+./dev.sh
+```
+
+Starts both servers in the background and prints their PIDs. Press `Ctrl+C` to stop both.
+
+### Troubleshooting
+
+| Error | Cause | Fix |
+| :--- | :--- | :--- |
+| `zsh: command not found: uvicorn` | venv not activated | `source .venv/bin/activate` |
+| `error: command 'cmake' failed` | pyarrow building from source | `pip install --only-binary=:all: pyarrow` |
+| `grpcio` takes very long | Compiling from C source | Wait 5-15 min; check CPU with `top -o cpu` |
+| `.git/index.lock: File exists` | Interrupted git operation | `rm .git/index.lock` |
+| `400 API_KEY_INVALID` | Stale process, key not reloaded | Restart uvicorn (`Ctrl+C` then re-run) |
+| CORS error in browser | Frontend origin not allowed | Check `allow_origins` in `main.py` |
+
+### Rotating the API Key
+
+1. Go to `https://aistudio.google.com/apikey`
+2. Delete the old key → **Create API key** → copy the new value
+3. Update `backend/.env`:
+   ```bash
+   echo "GOOGLE_API_KEY=AIzaSy..." > chatbot_template/backend/.env
+   ```
+4. Restart the backend (`Ctrl+C` → `uvicorn main:app --reload --port 8080`)
 
 ---
 
