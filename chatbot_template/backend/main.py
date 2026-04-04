@@ -71,6 +71,17 @@ async def _ensure_session(session_id: str) -> None:
 def _parse_response(text: str) -> dict:
     """Try to detect an A2UI JSON payload; fall back to plain text."""
     stripped = text.strip()
+
+    # Strip markdown code fences the LLM may add (```json ... ``` or ``` ... ```)
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        # Remove opening fence (```json or ```)
+        lines = lines[1:]
+        # Remove closing fence
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        stripped = "\n".join(lines).strip()
+
     if stripped.startswith("{"):
         try:
             payload = json.loads(stripped)

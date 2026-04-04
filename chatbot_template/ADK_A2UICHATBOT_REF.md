@@ -133,6 +133,7 @@ Starts both servers in the background and prints their PIDs. Press `Ctrl+C` to s
 | `.git/index.lock: File exists` | Interrupted git operation | `rm .git/index.lock` |
 | `400 API_KEY_INVALID` | Stale process, key not reloaded | Restart uvicorn (`Ctrl+C` then re-run) |
 | CORS error in browser | Frontend origin not allowed | Check `allow_origins` in `main.py` |
+| A2UI JSON renders as raw text | LLM wraps JSON in markdown code fences (` ```json ``` `) | Strip fences in `_parse_response` before `json.loads` — already handled in `main.py` |
 | `next.config.ts` not supported | Next.js 14 doesn't support `.ts` config | Rename to `next.config.mjs` and remove TypeScript types |
 | `/ 200` but browser shows nothing | Next.js still compiling on first load | Wait for `✓ Compiled /` in terminal, then refresh |
 
