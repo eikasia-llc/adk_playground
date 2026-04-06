@@ -13,7 +13,8 @@ const WORKFLOW_COLOR = '#6366f1'
 const TOOL_KINDS: AgentKind[] = ['Tool', 'McpToolset', 'Script']
 const TOOL_COLOR = '#6b7280'
 
-const INFO_KINDS: AgentKind[] = ['Database', 'Context']
+const DATA_STORE_KINDS: AgentKind[] = ['Database', 'ArtifactStore']
+const MEMORY_KINDS: AgentKind[] = ['Context', 'SessionState', 'Memory']
 const INFO_COLOR = '#8b5cf6'
 
 const OUTPUT_KINDS: AgentKind[] = ['A2UIResponse']
@@ -32,7 +33,8 @@ export default function NodePalette({ onDragStart }: NodePaletteProps) {
   const workflowItems = WORKFLOW_KINDS.map(paletteItem)
   const toolItems = TOOL_KINDS.map(paletteItem)
   const outputItems = OUTPUT_KINDS.map(paletteItem)
-  const infoItems = INFO_KINDS.map(paletteItem)
+  const dataStoreItems = DATA_STORE_KINDS.map(paletteItem)
+  const memoryItems = MEMORY_KINDS.map(paletteItem)
 
   const standaloneKinds: AgentKind[] = ['LlmAgent', 'Human']
   const standaloneItems = standaloneKinds.map(paletteItem)
@@ -177,13 +179,31 @@ export default function NodePalette({ onDragStart }: NodePaletteProps) {
           <span className="palette-icon">🗂️</span>
           <div className="palette-text">
             <div className="palette-label">Information Sets</div>
-            <div className="palette-desc">Database, Context</div>
+            <div className="palette-desc">Data Stores, Memory</div>
           </div>
           <span className="palette-group-chevron" style={{ transform: infoOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
         </button>
         {infoOpen && (
           <div className="palette-group-children">
-            {infoItems.map((item) => (
+            <div className="palette-subgroup-label">🗄️ Data Stores</div>
+            {dataStoreItems.map((item) => (
+              <div
+                key={item.kind}
+                className="palette-item palette-item-child"
+                draggable
+                onDragStart={(e) => onDragStart(item.kind, e)}
+                style={{ borderLeftColor: item.color }}
+                title={item.description}
+              >
+                <span className="palette-icon">{item.icon}</span>
+                <div className="palette-text">
+                  <div className="palette-label">{item.label}</div>
+                  <div className="palette-desc">{item.description}</div>
+                </div>
+              </div>
+            ))}
+            <div className="palette-subgroup-label">🧠 Memory</div>
+            {memoryItems.map((item) => (
               <div
                 key={item.kind}
                 className="palette-item palette-item-child"

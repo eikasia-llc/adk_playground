@@ -30,7 +30,10 @@ import ToolNode from './nodes/ToolNode'
 import McpToolsetNode from './nodes/McpToolsetNode'
 import ScriptNode from './nodes/ScriptNode'
 import DatabaseNode from './nodes/DatabaseNode'
+import ArtifactStoreNode from './nodes/ArtifactStoreNode'
 import ContextNode from './nodes/ContextNode'
+import SessionStateNode from './nodes/SessionStateNode'
+import MemoryNode from './nodes/MemoryNode'
 import HumanNode from './nodes/HumanNode'
 import EvaluatorNode from './nodes/EvaluatorNode'
 import A2UIResponseNode from './nodes/A2UIResponseNode'
@@ -51,7 +54,10 @@ const nodeTypes: NodeTypes = {
   McpToolset: McpToolsetNode,
   Script: ScriptNode,
   Database: DatabaseNode,
+  ArtifactStore: ArtifactStoreNode,
   Context: ContextNode,
+  SessionState: SessionStateNode,
+  Memory: MemoryNode,
   Human: HumanNode,
   Evaluator: EvaluatorNode,
   A2UIResponse: A2UIResponseNode,
@@ -65,10 +71,10 @@ const INITIAL_NODES: Node<NodeData>[] = []
 const INITIAL_EDGES: Edge[] = []
 
 // Kinds that sit at the boundary of the pipeline and don't need outgoing edges
-const TERMINAL_KINDS: AgentKind[] = ['Human', 'Database', 'Context', 'Script', 'A2UIResponse']
+const TERMINAL_KINDS: AgentKind[] = ['Human', 'Database', 'ArtifactStore', 'Context', 'SessionState', 'Memory', 'Script', 'A2UIResponse']
 
 // Kinds whose edges carry data/reference rather than active flow (no particles)
-const INFO_KINDS: AgentKind[] = ['Database', 'Context']
+const INFO_KINDS: AgentKind[] = ['Database', 'ArtifactStore', 'Context', 'SessionState', 'Memory']
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>(INITIAL_NODES)

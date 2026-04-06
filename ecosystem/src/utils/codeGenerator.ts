@@ -45,6 +45,30 @@ export function generatePythonCode(nodes: Node<NodeData>[], edges: Edge[], meta?
   const toolEdges = edges.filter((e) => e.data?.kind === 'tool')
   const responseEdges = edges.filter((e) => e.data?.kind === 'response')
 
+  // Information edges: any node ↔ an info-set node
+  const INFO_SET_KINDS: AgentKind[] = ['Database', 'ArtifactStore', 'Context', 'SessionState', 'Memory']
+  const infoEdges = edges.filter((e) => {
+    const sk = nodes.find((n) => n.id === e.source)?.data.kind
+    const tk = nodes.find((n) => n.id === e.target)?.data.kind
+    return (sk && INFO_SET_KINDS.includes(sk)) || (tk && INFO_SET_KINDS.includes(tk))
+  })
+
+  // Map: agentId → [Context node ids] (context injects content into agent instruction)
+  // An edge from Context → agent means "inject this context into that agent"
+  const agentContexts: Record<string, string[]> = {}
+  for (const e of infoEdges) {
+    const sourceNode = nodes.find((n) => n.id === e.source)
+    const targetNode = nodes.find((n) => n.id === e.target)
+    if (sourceNode?.data.kind === 'Context' && targetNode && !INFO_SET_KINDS.includes(targetNode.data.kind)) {
+      if (!agentContexts[e.target]) agentContexts[e.target] = []
+      agentContexts[e.target].push(e.source)
+    }
+    if (targetNode?.data.kind === 'Context' && sourceNode && !INFO_SET_KINDS.includes(sourceNode.data.kind)) {
+      if (!agentContexts[e.source]) agentContexts[e.source] = []
+      agentContexts[e.source].push(e.target)
+    }
+  }
+
   // Map: agentId → A2UIResponse node id
   const agentA2UI: Record<string, string> = {}
   for (const e of responseEdges) {
@@ -84,9 +108,13 @@ export function generatePythonCode(nodes: Node<NodeData>[], edges: Edge[], meta?
 
   // Collect which ADK kinds are actually used
   const usedKinds = new Set(nodes.map((n) => n.data.kind))
-  const hasTool = usedKinds.has('Tool')
+  const hasTool = usedKinds.has('Tool') || usedKinds.has('Database')
   const hasMcp = usedKinds.has('McpToolset')
   const hasScript = usedKinds.has('Script')
+  const hasMemory = usedKinds.has('Memory')
+  const hasArtifactStore = usedKinds.has('ArtifactStore')
+  const hasSessionState = usedKinds.has('SessionState')
+  const hasDatabase = usedKinds.has('Database')
 
   const lines: string[] = []
 
@@ -130,7 +158,99 @@ export function generatePythonCode(nodes: Node<NodeData>[], edges: Edge[], meta?
   if (hasTool) {
     lines.push('from google.adk.tools import ToolContext  # noqa: F401 — available if needed')
   }
+  if (hasMemory) {
+    const memNodes = nodes.filter((n) => n.data.kind === 'Memory')
+    const needsVertexRag = memNodes.some((n) => n.data.service_type === 'VertexAiRag')
+    if (needsVertexRag) {
+      lines.push('from google.adk.memory import VertexAiRagMemoryService')
+    } else {
+      lines.push('from google.adk.memory import InMemoryMemoryService')
+    }
+  }
+  if (hasArtifactStore) {
+    const artNodes = nodes.filter((n) => n.data.kind === 'ArtifactStore')
+    const needsGcs = artNodes.some((n) => n.data.service_type === 'GCS')
+    if (needsGcs) {
+      lines.push('from google.adk.artifacts import GcsArtifactService')
+    } else {
+      lines.push('from google.adk.artifacts import InMemoryArtifactService')
+    }
+  }
   lines.push('')
+
+  // ── Session State documentation ───────────────────────────────────────────
+  if (hasSessionState) {
+    for (const n of nodes) {
+      if (n.data.kind !== 'SessionState') continue
+      const d = n.data
+      const keys = d.keys.split(',').map((k: string) => k.trim()).filter(Boolean)
+      if (keys.length > 0) {
+        lines.push(`# Session State keys used in this pipeline (${d.name}):`)
+        const maxLen = Math.max(...keys.map((k: string) => k.length))
+        for (const key of keys) {
+          lines.push(`#   ${key.padEnd(maxLen)}  – (set via output_key; read via {${key}} in instructions)`)
+        }
+        if (d.schema) {
+          lines.push('#')
+          lines.push(`#   Schema: ${d.schema}`)
+        }
+        lines.push('')
+      }
+    }
+  }
+
+  // ── Memory service instantiation ─────────────────────────────────────────
+  if (hasMemory) {
+    for (const n of nodes) {
+      if (n.data.kind !== 'Memory') continue
+      const d = n.data
+      const varName = pyVar(d.name) + '_service'
+      if (d.service_type === 'VertexAiRag') {
+        lines.push(`${varName} = VertexAiRagMemoryService(`)
+        if (d.collection) lines.push(`    corpus_resource_name='${d.collection}',`)
+        lines.push(')')
+      } else {
+        lines.push(`${varName} = InMemoryMemoryService()`)
+      }
+      lines.push(`# Pass to Runner: Runner(..., memory_service=${varName})`)
+      lines.push('')
+    }
+  }
+
+  // ── Artifact service instantiation ───────────────────────────────────────
+  if (hasArtifactStore) {
+    for (const n of nodes) {
+      if (n.data.kind !== 'ArtifactStore') continue
+      const d = n.data
+      const varName = pyVar(d.name) + '_service'
+      if (d.service_type === 'GCS') {
+        lines.push(`${varName} = GcsArtifactService(`)
+        if (d.bucket) lines.push(`    bucket_name='${d.bucket}',`)
+        lines.push(')')
+      } else {
+        lines.push(`${varName} = InMemoryArtifactService()`)
+      }
+      lines.push(`# Pass to Runner: Runner(..., artifact_service=${varName})`)
+      lines.push('')
+    }
+  }
+
+  // ── Database tool stubs ───────────────────────────────────────────────────
+  if (hasDatabase) {
+    for (const n of nodes) {
+      if (n.data.kind !== 'Database') continue
+      const d = n.data
+      const varName = pyVar(d.name)
+      lines.push(`def query_${varName}(query: str) -> str:`)
+      lines.push(`    """Query the ${d.name} (${d.db_type || 'database'}).`)
+      if (d.description) lines.push(`    ${d.description}`)
+      if (d.connection) lines.push(`    Connection: ${d.connection}`)
+      lines.push(`    """`)
+      lines.push(`    # TODO: implement database query`)
+      lines.push(`    raise NotImplementedError`)
+      lines.push('')
+    }
+  }
 
   // ── Standalone scripts (not ADK classes — emit as subprocess stubs) ────────
   if (hasScript) {
@@ -190,7 +310,9 @@ export function generatePythonCode(nodes: Node<NodeData>[], edges: Edge[], meta?
     const node = nodeById[id]
     if (!node) continue
     const { kind } = node.data
-    if (kind === 'Tool' || kind === 'McpToolset' || kind === 'Script' || kind === 'A2UIResponse') continue
+    if (kind === 'Tool' || kind === 'McpToolset' || kind === 'Script' || kind === 'A2UIResponse'
+        || kind === 'Database' || kind === 'ArtifactStore' || kind === 'Context'
+        || kind === 'SessionState' || kind === 'Memory' || kind === 'Human') continue
 
     const isRoot = roots.length === 1 && roots[0].id === id
     const varName = isRoot ? 'root_agent' : pyVar(node.data.name)
@@ -201,8 +323,15 @@ export function generatePythonCode(nodes: Node<NodeData>[], edges: Edge[], meta?
         .map((tid) => pyVar(nodeById[tid]?.data.name ?? tid))
         .join(', ')
 
-      // Build instruction — append A2UI block if connected to an A2UIResponse node
+      // Build instruction — append Context content and A2UI block if connected
       let instruction = d.instruction
+      // Inject Context nodes connected to this agent
+      for (const ctxId of (agentContexts[id] ?? [])) {
+        const ctxNode = nodeById[ctxId]
+        if (ctxNode?.data.kind === 'Context' && ctxNode.data.content) {
+          instruction = instruction + `\n\n# [context: ${ctxNode.data.name}]\n${ctxNode.data.content}`
+        }
+      }
       const a2uiNodeId = agentA2UI[id]
       if (a2uiNodeId) {
         const a2uiNode = nodeById[a2uiNodeId]

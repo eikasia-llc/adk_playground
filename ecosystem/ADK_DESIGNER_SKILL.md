@@ -2,9 +2,11 @@
 - status: active
 - type: how-to
 - id: ecosystem.designer.skill
-- description: Visual ADK multi-agent pipeline designer built with React Flow: drag-and-drop node canvas, edge types, property panel, and Python agent.py export.
+- description: Visual ADK multi-agent pipeline designer built with React Flow: drag-and-drop node canvas, bidirectional flow edges, edge/node property panel, A2UI Response output contract node, preset JSON round-trip, and Python agent.py export with metadata docstring.
 - last_checked: 2026-04-06
 - label: [skill, frontend]
+- injection: procedural
+- volatility: evolving
 <!-- content -->
 The `ecosystem/` project is a **visual multi-agent architecture designer** built with React + React Flow. It lets you design ADK multi-agent pipelines by dragging and connecting nodes on a canvas, then exporting a working `agent.py` file.
 
@@ -62,17 +64,21 @@ Active flow edges render **animated particles** (3 glowing dots) traveling in th
 - **Particle speed** is controlled by `data.speed` on each edge (seconds per traversal, default 2.5). This field is reserved for future latency/speed analysis.
 - **Stuck nodes** — any non-Human, non-information node with no outgoing edges — are highlighted with a pulsing amber ring. This flags dead-ends in the pipeline where flow enters but cannot continue.
 - **Information Set edges** (Database, Context) carry data/reference rather than active flow. They render as plain edges with no particles, visually distinguishing passive data from active processing.
+- **Edge name labels** — if `data.name` is set on an edge, it is rendered as a small colored pill at the midpoint of the curve.
 
 ### Edge semantics
-Edges always carry information in the direction of the arrow. Color indicates the relationship:
+Every active flow connection produces **two directed edges**: a forward *call* edge and a reverse *response* edge. Both carry identical animated particles. Color indicates the relationship:
 
-| Color | Style | Meaning |
-| :--- | :--- | :--- |
-| Indigo | Solid, animated | Workflow agent → sub-agent (orchestration + data) |
-| Orange | Solid | LLM agent → delegated agent |
-| Teal | Dashed | Any agent → tool (function call) |
-| Pink | Dashed | LLM agent → A2UI Response (output contract) |
-| Gray | Plain, no particles | Any node → Information Set (Database or Context) |
+| Color | Style | Direction | Meaning |
+| :--- | :--- | :--- | :--- |
+| Indigo | Solid, animated | Workflow → sub-agent | Orchestration call |
+| Orange | Solid, animated | LLM agent → agent | Delegation call |
+| Teal | Dashed, animated | Agent → Tool / MCP | Tool call |
+| Pink | Dashed | LLM agent → A2UI Response | Output contract (no return edge) |
+| Same color | Dashed, animated | Reverse of above | Response / result returning |
+| Gray | Plain, no particles | Any → Database / Context | Passive data access (no return) |
+
+The forward and return edges are **separate, independently routable arrows** — each connects through a specific handle (`top`, `right`, `bottom`, `left`) on the source and target nodes. This lets you route them on different paths to avoid visual crossings.
 
 ## Node Types
 ### Active flow nodes
@@ -101,10 +107,20 @@ Connect an `A2UIResponse` node from an `LlmAgent` using a **response edge** (pin
 ### Information Set nodes
 These nodes represent passive data sources. Their edges carry no flow particles and they do not trigger stuck-node warnings. They are of a fundamentally different nature from active flow nodes.
 
-| Node | Palette group | Color | Purpose |
-| :--- | :--- | :--- | :--- |
-| 🗄️ Database | Information Sets | Violet | Persistent data store (SQL, NoSQL, vector DB, etc.) connected to the pipeline |
-| 📋 Context | Information Sets | Cyan | Static or dynamic knowledge injected into the pipeline (instructions, reference data, documents) |
+Information Sets are split into two sub-groups in the palette:
+
+#### 🗄️ Data Stores — tool-facing
+| Node | Palette group | Color | ADK concept | Code gen |
+| :--- | :--- | :--- | :--- | :--- |
+| 🗄️ Database | Information Sets | Violet | External data store a tool queries/writes (SQL, NoSQL, vector DB) | Emits a `query_<name>(query: str) -> str` stub function |
+| 📄 Artifact Store | Information Sets | Amber | Files/blobs produced or consumed during a session (`ArtifactService`) | Emits `InMemoryArtifactService()` or `GcsArtifactService(bucket_name=...)` + Runner comment |
+
+#### 🧠 Memory — LLM-facing
+| Node | Palette group | Color | ADK concept | Code gen |
+| :--- | :--- | :--- | :--- | :--- |
+| 📋 Context | Information Sets | Cyan | Static knowledge appended to a connected agent's `instruction` | Appends `content` to the connected LlmAgent's `instruction` field |
+| 🔄 Session State | Information Sets | Emerald | Shared key-value store within a pipeline run (`session.state` / `output_key`) | Emits a comment block documenting all state keys |
+| 🧠 Memory | Information Sets | Indigo | Cross-session semantic retrieval (`MemoryService`) | Emits `InMemoryMemoryService()` or `VertexAiRagMemoryService(...)` + Runner comment |
 
 ## How to Use
 ### Palette groups
@@ -116,13 +132,13 @@ The left sidebar organises nodes into collapsible groups. Click a group header t
 | 🔀 Workflow Agents | Sequential, Parallel, Loop, Evaluator |
 | 🧰 Tools | Tool, MCP Toolset |
 | 🎨 Output Contracts | A2UI Response |
-| 🗂️ Information Sets | Database, Context |
+| 🗂️ Information Sets | 🗄️ Data Stores: Database, Artifact Store — 🧠 Memory: Context, Session State, Memory |
 
 ### Building a pipeline
 1. **Drag** a node from the left palette onto the canvas.
-2. **Connect** nodes by dragging from any handle to another node's handle.
-3. **Click** any node to open its properties in the right panel.
-4. **Edit** fields: name, model, instruction, output_key, max_iterations, success_condition, DB type, content, etc.
+2. **Connect** nodes by dragging from any handle to another node's handle. A forward call edge and its paired return edge are created automatically.
+3. **Click any node** to open its properties in the right panel. Edit name, model, instruction, output_key, max_iterations, success_condition, DB type, content, etc.
+4. **Click any edge** to open its properties in the right panel. Edit name, description, and handle assignments.
 5. All nodes are **resizable**: select a node and drag the corner/edge handles.
 
 ### Edge types
@@ -135,10 +151,16 @@ The left sidebar organises nodes into collapsible groups. Click a group header t
 Every active flow connection also produces a **return edge** — a separate dashed arrow running in the opposite direction via the `bottom` handle on both nodes, representing the response or result flowing back. Both directions carry animated particles at the same speed and brightness.
 
 ### Editing edges
-Click any edge to open it in the right property panel. You can edit:
-- **Name** — short label rendered as a pill at the edge midpoint on the canvas.
-- **Description** — longer annotation stored on the edge, visible only in the panel.
-- **From handle** / **To handle** — which side of the node the edge departs from / arrives at (`top`, `right`, `bottom`, `left`). Change these to untangle messy crossings. The handle picker shows a mini node diagram with four buttons.
+Click any edge to open it in the property panel:
+
+| Field | Effect |
+| :--- | :--- |
+| **Name** | Short label rendered as a pill at the edge midpoint on the canvas |
+| **Description** | Longer annotation stored on the edge, visible only in the panel |
+| **From handle** | Which side of the source node the edge departs from (`top`, `right`, `bottom`, `left`) |
+| **To handle** | Which side of the target node the edge arrives at |
+
+The handle picker shows a mini node diagram with four buttons arranged around a box. The active handle is highlighted in the edge's color. Changing handles immediately reroutes the edge curve — use this to untangle crossings between forward and return arrows.
 
 ### Stuck node indicator
 Any non-Human, non-information node with no outgoing edges is flagged with a **pulsing amber ring**. This means the pipeline has a dead-end at that node — flow enters but cannot continue. Connect an outgoing edge to clear the warning.
@@ -146,6 +168,8 @@ Any non-Human, non-information node with no outgoing edges is flagged with a **p
 ### Saving & loading (browser)
 - **Save** stores the current canvas as JSON in `localStorage`.
 - **Load** restores the last saved design from `localStorage`.
+
+These are quick session saves. For portable, named layouts use presets instead.
 
 ### Preset files
 Preset files are named JSON files in `ecosystem/presets/`. They carry a `_meta` block plus the full `nodes` and `edges` arrays — including every node's pixel position, size, and all edge handle assignments.
@@ -163,21 +187,34 @@ Preset files are named JSON files in `ecosystem/presets/`. They carry a `_meta` 
 }
 ```
 
+When a preset is loaded and then exported again via **Export Preset**, React Flow adds runtime fields to node objects (`measured`, `selected`, `dragging`, `resizing`). These are harmless — React Flow uses them on reload and they do not affect Python export.
+
 **Loading a preset:** Click **Load File** → select the `.json` file. The canvas is replaced with the saved layout.
 
 **Saving a layout back to a preset:** After loading a preset and arranging nodes and edges to your liking, click **Export Preset**. The browser downloads a `.json` named after `_meta.name`, containing the current canvas state (positions, sizes, handle assignments, edge labels) with the original `_meta` intact. Replace the file in `ecosystem/presets/` to persist the layout.
 
-The round-trip is: **Load File** → edit on canvas → **Export Preset** → overwrite the file.
+**The round-trip: Load File → arrange on canvas → Export Preset → overwrite the file.**
 
 ### Exporting Python
-Click **Export Python** in the toolbar — the browser downloads an `agent.py` file. When a preset with `_meta` is loaded, the file header includes the preset name, description, and source repo as a module docstring. The generator:
-1. Emits a module docstring from `_meta` (name, description, source repo, date).
-2. Topologically sorts nodes (leaves first).
-3. Emits tool function defs and MCP toolset factories.
-4. Emits agent instantiations in dependency order.
-5. Assigns `root_agent` to the top-level workflow agent.
-6. Generates only the imports needed for the node types used.
-7. For any `LlmAgent` with a **response** edge to an `A2UIResponse` node, appends the A2UI instruction block (listing only the enabled component types) to that agent's `instruction` field automatically.
+Click **Export Python** in the toolbar — the browser downloads an `agent.py` file. When a preset with `_meta` is loaded, the file begins with a module docstring:
+
+```python
+"""
+My Pipeline
+===========
+One-sentence summary.
+
+Source: my_repo
+Generated: 2026-03-28 by ADK Agent Designer
+"""
+```
+
+The generator then:
+1. Emits imports for only the node types present on the canvas.
+2. Emits tool function defs and MCP toolset factories (leaves first).
+3. Emits agent instantiations in topological order.
+4. Assigns `root_agent` to the top-level workflow agent.
+5. For any `LlmAgent` with a **response** edge to an `A2UIResponse` node, appends the A2UI instruction block (listing only the enabled component types) to that agent's `instruction` field automatically.
 
 ## File Structure
 ```
@@ -187,6 +224,8 @@ ecosystem/
 ├── vite.config.ts
 ├── tsconfig.json
 ├── ADK_DESIGNER_SKILL.md              ← this file
+├── presets/                           ← named pipeline layouts
+│   └── mcmp_chatbot.json
 └── src/
     ├── main.tsx                       ← React entry point
     ├── App.tsx                        ← Layout: palette | canvas | properties

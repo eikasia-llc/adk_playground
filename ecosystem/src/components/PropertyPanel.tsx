@@ -357,6 +357,104 @@ export default function PropertyPanel({ node, edge, onChange, onDelete, onEdgeCh
                 placeholder="Static text, instructions, or reference data injected into the pipeline…"
               />
             </Field>
+            <p style={{ fontSize: 11, color: '#475569', lineHeight: 1.5, marginTop: 4 }}>
+              Connect this node to an LLM Agent with an information edge. The code generator will append the content to that agent's <code>instruction</code>.
+            </p>
+          </>
+        )}
+
+        {/* ── SessionState ── */}
+        {data.kind === 'SessionState' && (
+          <>
+            <Field label="Description">
+              <input
+                value={data.description}
+                onChange={(e) => update({ description: e.target.value } as Partial<NodeData>)}
+                placeholder="What does this state store?"
+              />
+            </Field>
+            <Field label="Keys (comma-separated)">
+              <input
+                value={data.keys}
+                onChange={(e) => update({ keys: e.target.value } as Partial<NodeData>)}
+                placeholder="e.g. overview, draft, review_notes"
+              />
+            </Field>
+            <Field label="Schema (optional)">
+              <textarea
+                value={data.schema}
+                onChange={(e) => update({ schema: e.target.value } as Partial<NodeData>)}
+                rows={4}
+                placeholder="Describe the shape of each key's value (natural language or JSON)…"
+              />
+            </Field>
+            <p style={{ fontSize: 11, color: '#475569', lineHeight: 1.5, marginTop: 4 }}>
+              Agents write to state via <code>output_key</code> and read via <code>&#123;key&#125;</code> placeholders in their instructions.
+            </p>
+          </>
+        )}
+
+        {/* ── Memory ── */}
+        {data.kind === 'Memory' && (
+          <>
+            <Field label="Description">
+              <input
+                value={data.description}
+                onChange={(e) => update({ description: e.target.value } as Partial<NodeData>)}
+                placeholder="What does this memory store?"
+              />
+            </Field>
+            <Field label="Service type">
+              <select
+                value={data.service_type}
+                onChange={(e) => update({ service_type: e.target.value } as Partial<NodeData>)}
+              >
+                <option value="InMemory">InMemory</option>
+                <option value="VertexAiRag">VertexAiRag</option>
+              </select>
+            </Field>
+            <Field label="Collection / Corpus">
+              <input
+                value={data.collection}
+                onChange={(e) => update({ collection: e.target.value } as Partial<NodeData>)}
+                placeholder="Collection name or Vertex AI RAG corpus resource ID"
+              />
+            </Field>
+            <p style={{ fontSize: 11, color: '#475569', lineHeight: 1.5, marginTop: 4 }}>
+              The code generator emits a <code>MemoryService</code> instantiation. Pass it to your <code>Runner</code> for cross-session semantic retrieval.
+            </p>
+          </>
+        )}
+
+        {/* ── ArtifactStore ── */}
+        {data.kind === 'ArtifactStore' && (
+          <>
+            <Field label="Description">
+              <input
+                value={data.description}
+                onChange={(e) => update({ description: e.target.value } as Partial<NodeData>)}
+                placeholder="What artifacts does this store?"
+              />
+            </Field>
+            <Field label="Service type">
+              <select
+                value={data.service_type}
+                onChange={(e) => update({ service_type: e.target.value } as Partial<NodeData>)}
+              >
+                <option value="InMemory">InMemory</option>
+                <option value="GCS">GCS</option>
+              </select>
+            </Field>
+            <Field label="GCS bucket">
+              <input
+                value={data.bucket}
+                onChange={(e) => update({ bucket: e.target.value } as Partial<NodeData>)}
+                placeholder="my-bucket (only for GCS service type)"
+              />
+            </Field>
+            <p style={{ fontSize: 11, color: '#475569', lineHeight: 1.5, marginTop: 4 }}>
+              The code generator emits an <code>ArtifactService</code> instantiation. Pass it to your <code>Runner</code> to enable file/blob storage during the session.
+            </p>
           </>
         )}
       </div>

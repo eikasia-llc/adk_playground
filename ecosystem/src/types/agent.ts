@@ -7,7 +7,10 @@ export type AgentKind =
   | 'McpToolset'
   | 'Script'
   | 'Database'
+  | 'ArtifactStore'
   | 'Context'
+  | 'SessionState'
+  | 'Memory'
   | 'Human'
   | 'Evaluator'
   | 'A2UIResponse'
@@ -97,6 +100,36 @@ export interface ContextData extends Record<string, unknown> {
   content: string
 }
 
+export interface SessionStateData extends Record<string, unknown> {
+  kind: 'SessionState'
+  name: string
+  description: string
+  /** Comma-separated list of state keys used in this pipeline, e.g. "overview, draft" */
+  keys: string
+  /** Optional: natural-language or JSON description of each key's value shape */
+  schema: string
+}
+
+export interface MemoryData extends Record<string, unknown> {
+  kind: 'Memory'
+  name: string
+  description: string
+  /** InMemory | VertexAiRag */
+  service_type: string
+  /** Collection name or Vertex AI RAG corpus resource ID */
+  collection: string
+}
+
+export interface ArtifactStoreData extends Record<string, unknown> {
+  kind: 'ArtifactStore'
+  name: string
+  description: string
+  /** InMemory | GCS */
+  service_type: string
+  /** GCS bucket name (only used when service_type = GCS) */
+  bucket: string
+}
+
 export type A2UIComponentType = 'text' | 'button' | 'card' | 'list' | 'rps_selector' | 'sealed_box'
 
 export const A2UI_ALL_COMPONENTS: A2UIComponentType[] = ['text', 'button', 'card', 'list', 'rps_selector', 'sealed_box']
@@ -129,7 +162,10 @@ export type NodeData =
   | McpToolsetData
   | ScriptData
   | DatabaseData
+  | ArtifactStoreData
   | ContextData
+  | SessionStateData
+  | MemoryData
   | HumanData
   | EvaluatorData
   | A2UIResponseData
@@ -202,11 +238,32 @@ export const PALETTE_ITEMS: PaletteItem[] = [
     icon: '🗄️',
   },
   {
+    kind: 'ArtifactStore',
+    label: 'Artifact Store',
+    description: 'Files and blobs produced or consumed during a session (ArtifactService)',
+    color: '#f59e0b',
+    icon: '📄',
+  },
+  {
     kind: 'Context',
     label: 'Context',
-    description: 'Static or dynamic knowledge injected into the pipeline',
+    description: 'Static knowledge appended to a connected agent\'s instruction',
     color: '#06b6d4',
     icon: '📋',
+  },
+  {
+    kind: 'SessionState',
+    label: 'Session State',
+    description: 'Shared key-value store within a pipeline run (session.state / output_key)',
+    color: '#10b981',
+    icon: '🔄',
+  },
+  {
+    kind: 'Memory',
+    label: 'Memory',
+    description: 'Cross-session semantic retrieval (MemoryService)',
+    color: '#6366f1',
+    icon: '🧠',
   },
   {
     kind: 'Human',
@@ -287,6 +344,30 @@ export function defaultData(kind: AgentKind): NodeData {
         name: 'my_context',
         description: '',
         content: '',
+      }
+    case 'ArtifactStore':
+      return {
+        kind,
+        name: 'artifact_store',
+        description: '',
+        service_type: 'InMemory',
+        bucket: '',
+      }
+    case 'SessionState':
+      return {
+        kind,
+        name: 'session_state',
+        description: '',
+        keys: '',
+        schema: '',
+      }
+    case 'Memory':
+      return {
+        kind,
+        name: 'memory',
+        description: '',
+        service_type: 'InMemory',
+        collection: '',
       }
     case 'Human':
       return {
