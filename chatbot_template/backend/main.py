@@ -35,10 +35,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="ADK Chatbot Backend", lifespan=lifespan)
 
+# CORS origins are read from ALLOWED_ORIGINS (comma-separated). In production
+# the backend is deployed IAM-only and is reached exclusively via the Next.js
+# server-side proxy in the frontend, which means no browser ever performs a
+# cross-origin request against this service. ALLOWED_ORIGINS is therefore
+# expected to be empty (or unset) in production. For local dev set
+# ALLOWED_ORIGINS=http://localhost:3000 in backend/.env.
+_allowed = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    # Tighten this to your frontend origin in production
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_allowed,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )

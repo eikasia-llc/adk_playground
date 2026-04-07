@@ -1,0 +1,32 @@
+# Firebase App Hosting configuration for the Chatbot Template frontend.
+# Docs: https://firebase.google.com/docs/app-hosting/configure
+#
+# Production branch: chatbot-template (see INFRASTRUCTURE_CHATBOT_TEMPLATE_REF.md).
+# This file is consumed by App Hosting buildpacks; it is NOT used by the
+# alternative Cloud Run / Dockerfile path.
+
+runConfig:
+  # Scale to zero — at ~2 users/week, cold-start latency is acceptable and
+  # this keeps cost effectively at zero.
+  minInstances: 0
+  maxInstances: 2
+  # The Next.js SSR server is lightweight; 512 MiB is plenty for the proxy
+  # routes and React rendering at this scale.
+  memoryMiB: 512
+  cpu: 1
+  concurrency: 80
+  # Cloud Run default request timeout is fine; SSE streams from /api/stream
+  # are bounded by the upstream backend response.
+
+env:
+  # Server-side only (NOT exposed to the browser). The Next.js proxy routes
+  # use this to call the IAM-only Cloud Run backend with an OIDC ID token
+  # minted via the metadata server.
+  #
+  # Placeholder until Phase 3 deploys the backend and we know its URL.
+  # Phase 4 will replace this with the real Cloud Run URL via:
+  #   firebase apphosting:secrets:set BACKEND_URL  (or direct edit + git push)
+  - variable: BACKEND_URL
+    value: https://chatbot-template-app-backend-PLACEHOLDER.us-central1.run.app
+    availability:
+      - RUNTIME

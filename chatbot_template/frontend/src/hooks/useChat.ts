@@ -2,8 +2,11 @@
 
 import { useState, useCallback, useRef } from "react";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
+// All backend traffic flows through the Next.js server-side proxy routes
+// (src/app/api/chat, src/app/api/stream). The browser never calls Cloud Run
+// directly; the Next.js server mints OIDC ID tokens for the IAM-locked
+// backend. See INFRASTRUCTURE_CHATBOT_TEMPLATE_REF.md for the auth flow.
+const API_BASE = "/api";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -46,7 +49,7 @@ export function useChat() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/chat`, {
+      const res = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -96,7 +99,7 @@ export function useChat() {
     });
 
     try {
-      const res = await fetch(`${BACKEND_URL}/stream?${params}`);
+      const res = await fetch(`${API_BASE}/stream?${params}`);
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
       const reader = res.body.getReader();

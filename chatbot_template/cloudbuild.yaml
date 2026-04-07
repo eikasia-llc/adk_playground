@@ -1,0 +1,84 @@
+# Cloud Build pipeline for the Chatbot Template BACKEND.
+#
+# Frontend is deployed via Firebase App Hosting (auto-deploy from GitHub
+# branch `chatbot-template`) and is NOT built here.
+#
+# Trigger: manual via `gcloud builds submit --config cloudbuild.yaml .` from
+# the `chatbot-template` branch, or via a Cloud Build trigger you create
+# pointing at this branch + this file.
+#
+# Substitutions (override with --substitutions=_FOO=bar):
+#   _REGION       us-central1
+#   _AR_REPO      chatbot-template-app
+#   _SERVICE      chatbot-template-app-backend
+#   _RUNTIME_SA   chatbot-template-app-sa@chatbot-template.iam.gserviceaccount.com
+#   _SECRET       GOOGLE_API_KEY
+
+substitutions:
+  _REGION: us-central1
+  _AR_REPO: chatbot-template-app
+  _SERVICE: chatbot-template-app-backend
+  _RUNTIME_SA: chatbot-template-app-sa@chatbot-template.iam.gserviceaccount.com
+  _SECRET: GOOGLE_API_KEY
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/backend:$SHORT_SHA"
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/backend:latest"
+
+steps:
+  # ---- 1. Pull the previous :latest as a build cache (best-effort) ----
+  - id: pull-cache
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker pull ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/backend:latest || exit 0
+
+  # ---- 2. Build backend image ----
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --cache-from
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/backend:latest
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/backend:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/backend:latest
+      - ./backend
+
+  # ---- 3. Push (also handled by `images:` block, kept explicit for clarity) ----
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/backend
+
+  # ---- 4. Deploy to Cloud Run (IAM-only, secret-mounted, WARN logs) ----
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/backend:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --no-allow-unauthenticated
+      - --service-account=${_RUNTIME_SA}
+      - --set-secrets=GOOGLE_API_KEY=${_SECRET}:latest
+      - --set-env-vars=ALLOWED_ORIGINS=
+      - --min-instances=0
+      - --max-instances=2
+      - --memory=512Mi
+      - --cpu=1
+      - --concurrency=80
+      - --labels=app=chatbot-template-app,managed-by=cloudbuild
+
+timeout: 1200s
