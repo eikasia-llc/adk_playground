@@ -1,17 +1,6 @@
 {
   "apphosting": [
     {
-      "backendId": "chatbot-template-backend",
-      "rootDir": "/",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "functions"
-      ]
-    },
-    {
       "backendId": "chatbot-template-app",
       "rootDir": "frontend/",
       "ignore": [
