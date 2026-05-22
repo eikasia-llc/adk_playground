@@ -5,7 +5,8 @@
       "Bash(python3 -m json.tool)",
       "Bash(rm WORKLOG.md)",
       "Bash(rm /tmp/adk_worklog_migrate.py)",
-      "Bash(python3 /tmp/adk_worklog_append.py)"
+      "Bash(python3 /tmp/adk_worklog_append.py)",
+      "WebFetch(domain:ai.google.dev)"
     ],
     "additionalDirectories": [
       "/tmp",
