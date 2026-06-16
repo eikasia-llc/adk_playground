@@ -6,7 +6,8 @@
       "Bash(rm WORKLOG.md)",
       "Bash(rm /tmp/adk_worklog_migrate.py)",
       "Bash(python3 /tmp/adk_worklog_append.py)",
-      "WebFetch(domain:ai.google.dev)"
+      "WebFetch(domain:ai.google.dev)",
+      "mcp__cp_mcp__cp_mcp_task_list"
     ],
     "additionalDirectories": [
       "/tmp",
