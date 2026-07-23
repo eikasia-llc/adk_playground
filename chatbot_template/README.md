@@ -9,6 +9,19 @@ last_checked: '2026-05-17'
 ---
 # Chatbot Template
 
+## Decommissioned: 2026-07-23
+
+> **This app's GCP project (`chatbot-template-eikasia`, project number `207274917577`) was decommissioned on 2026-07-23.**
+>
+> - **Reason:** legacy project teardown, directed by the CTO.
+> - **Authorized by:** CTO (`eikasia@eikasia.com`).
+> - **Method:** whole-project delete (`gcloud projects delete`). State: `DELETE_REQUESTED`.
+> - **Recovery:** `gcloud projects undelete chatbot-template-eikasia` until **2026-08-22** (~30-day window); permanent thereafter.
+> - **Data:** no data preserved (no Firestore/BigQuery data existed; secrets and images destroyed with the project). Source in this repo is retained and reproducible.
+> - **Record:** `control_tower/artifacts/2026-07-23_010_decommission-legacy-projects_decommission-record.md`.
+>
+> The documentation below describes the app as it ran before decommissioning and is kept as the audit trail.
+
 A minimal production-ready ADK chatbot:
 
 - **Backend**: Python 3.11 + FastAPI + Google ADK (`gemini-2.5-flash`). Endpoints: `POST /chat`, `GET /stream` (SSE), `GET /health`.
