@@ -26,9 +26,9 @@ logs/
 .idea/
 .vscode/
 
-# Claude Code — local overrides and editor backups
-.claude/settings.local.json
-.claude/*.json-e
+# Coding agent workspace configs (machine-specific)
+.agents/
+.claude/
 
 # Databases
 session.db
