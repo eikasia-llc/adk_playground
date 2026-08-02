@@ -14,6 +14,10 @@ Tools exposed:
 """
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
+from pydantic import Field, ConfigDict, BaseModel
+from typing import Annotated, Optional, List, Dict, Any
+import json
 
 # ---------------------------------------------------------------------------
 # Storage — in-memory dict per session (resets when the server process exits)
@@ -37,11 +41,23 @@ def _save(session_id: str, data: dict) -> None:
 # ---------------------------------------------------------------------------
 # MCP server
 # ---------------------------------------------------------------------------
-mcp = FastMCP("rps-memory")
+mcp = FastMCP("rps_memory_mcp")
 
 
-@mcp.tool()
-def save_agent_choice(session_id: str, choice: str) -> str:
+@mcp.tool(
+    name="rps_save_agent_choice",
+    annotations=ToolAnnotations(
+        title="Save Agent Choice",
+        readOnlyHint=False,
+        destructiveHint=True,
+        idempotentHint=False,
+        openWorldHint=False
+    )
+)
+def rps_save_agent_choice(
+    session_id: Annotated[str, Field(description="The unique session ID.", min_length=1)],
+    choice: Annotated[str, Field(description="The agent's RPS choice (rock, paper, or scissors).", min_length=4)]
+) -> str:
     """
     Lock in the agent's RPS choice BEFORE the player picks.
     choice must be one of: rock, paper, scissors.
@@ -56,8 +72,20 @@ def save_agent_choice(session_id: str, choice: str) -> str:
     return f"Agent choice '{choice}' saved and sealed."
 
 
-@mcp.tool()
-def record_round(session_id: str, player_choice: str) -> dict:
+@mcp.tool(
+    name="rps_record_round",
+    annotations=ToolAnnotations(
+        title="Record Round",
+        readOnlyHint=False,
+        destructiveHint=True,
+        idempotentHint=False,
+        openWorldHint=False
+    )
+)
+def rps_record_round(
+    session_id: Annotated[str, Field(description="The unique session ID.", min_length=1)],
+    player_choice: Annotated[str, Field(description="The player's RPS choice.", min_length=4)]
+) -> str:
     """
     Record the player's choice, evaluate the round, and persist the result.
     Returns: { round, player_choice, agent_choice, result }
@@ -66,12 +94,12 @@ def record_round(session_id: str, player_choice: str) -> dict:
     """
     player = player_choice.lower().strip()
     if player not in VALID_CHOICES:
-        return {"error": f"Invalid player choice '{player}'."}
+        return json.dumps({"error": f"Invalid player choice '{player}'."})
 
     data = _load(session_id)
     agent = data.get("pending_choice")
     if not agent:
-        return {"error": "No agent choice found for this session. Call save_agent_choice first."}
+        return json.dumps({"error": "No agent choice found for this session. Call rps_save_agent_choice first."})
 
     if player == agent:
         result = "draw"
@@ -89,23 +117,45 @@ def record_round(session_id: str, player_choice: str) -> dict:
     data["rounds"].append(round_entry)
     data["pending_choice"] = None
     _save(session_id, data)
-    return round_entry
+    return json.dumps(round_entry)
 
 
-@mcp.tool()
-def get_history(session_id: str) -> list:
+@mcp.tool(
+    name="rps_get_history",
+    annotations=ToolAnnotations(
+        title="Get Round History",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False
+    )
+)
+def rps_get_history(
+    session_id: Annotated[str, Field(description="The unique session ID.", min_length=1)]
+) -> str:
     """Return all past rounds for this session as a list of round objects."""
-    return _load(session_id)["rounds"]
+    return json.dumps(_load(session_id)["rounds"])
 
 
-@mcp.tool()
-def get_stats(session_id: str) -> dict:
+@mcp.tool(
+    name="rps_get_stats",
+    annotations=ToolAnnotations(
+        title="Get Stats",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False
+    )
+)
+def rps_get_stats(
+    session_id: Annotated[str, Field(description="The unique session ID.", min_length=1)]
+) -> str:
     """Return win/loss/draw counts for this session."""
     rounds = _load(session_id)["rounds"]
     stats = {"player_wins": 0, "agent_wins": 0, "draws": 0, "total": len(rounds)}
     for r in rounds:
         stats[r["result"]] = stats.get(r["result"], 0) + 1
-    return stats
+    return json.dumps(stats)
 
 
 if __name__ == "__main__":

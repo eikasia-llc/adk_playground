@@ -95,20 +95,22 @@ async def _ensure_session(session_id: str) -> None:
         pass  # session already exists
 
 
+import re
+
 def _parse_response(text: str) -> dict:
     """Try to detect an A2UI JSON payload; fall back to plain text."""
+    # Look for a JSON block anywhere in the text
+    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if json_match:
+        try:
+            payload = json.loads(json_match.group(1))
+            if "components" in payload:
+                return {"type": "a2ui", "payload": payload}
+        except json.JSONDecodeError:
+            pass
+
+    # Fallback: if there are no markdown fences, see if the whole thing is just JSON
     stripped = text.strip()
-
-    # Strip markdown code fences the LLM may add (```json ... ``` or ``` ... ```)
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        # Remove opening fence (```json or ```)
-        lines = lines[1:]
-        # Remove closing fence
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        stripped = "\n".join(lines).strip()
-
     if stripped.startswith("{"):
         try:
             payload = json.loads(stripped)
@@ -116,6 +118,7 @@ def _parse_response(text: str) -> dict:
                 return {"type": "a2ui", "payload": payload}
         except json.JSONDecodeError:
             pass
+            
     return {"type": "text", "text": text}
 
 

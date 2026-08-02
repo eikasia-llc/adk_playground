@@ -18,7 +18,12 @@ export type A2UIComponent =
   | { type: "card"; title: string; subtitle?: string; body: A2UIComponent[] }
   | { type: "list"; items: string[] }
   | { type: "rps_selector"; prompt?: string }
-  | { type: "sealed_box"; label?: string };
+  | { type: "sealed_box"; label?: string }
+  | { type: "text_input"; label?: string; placeholder?: string; input_type?: string; required?: boolean }
+  | { type: "slider"; label?: string; min_value: number; max_value: number; step?: number; default_value?: number }
+  | { type: "dropdown"; label?: string; options: { label: string; value: string }[]; default_value?: string }
+  | { type: "checkbox_group"; group_label?: string; options: { label: string; value: string; checked?: boolean }[] }
+  | { type: "chart"; chart_type: "bar" | "line" | "pie"; title?: string; x_axis_label?: string; y_axis_label?: string; data: { label: string; value: number }[] };
 
 export type Message = {
   id: string;
