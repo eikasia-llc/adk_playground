@@ -154,17 +154,27 @@ async def chat(body: ChatRequest):
     )
 
     response_text = ""
+    tools_called = []
     with log_latency("chat:runner_run"):
         async for event in runner.run_async(
             user_id=session_id,
             session_id=session_id,
             new_message=content,
         ):
+            if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if part.function_call:
+                        tools_called.append(part.function_call.name)
+
             if event.is_final_response() and event.content and event.content.parts:
                 response_text = event.content.parts[0].text or ""
 
+    res = _parse_response(response_text)
+    if tools_called:
+        res["tools_called"] = tools_called
+
     return JSONResponse(
-        content={"session_id": session_id, **_parse_response(response_text)}
+        content={"session_id": session_id, **res}
     )
 
 
@@ -207,6 +217,10 @@ async def stream(
             new_message=content,
         ):
             if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if part.function_call:
+                        yield f"data: {json.dumps({'type': 'tool_call', 'tool': part.function_call.name})}\n\n"
+
                 chunk = event.content.parts[0].text or ""
                 if chunk:
                     if not first_chunk_logged:

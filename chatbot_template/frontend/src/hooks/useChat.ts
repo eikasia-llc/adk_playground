@@ -19,10 +19,13 @@ export type A2UIComponent =
   | { type: "list"; items: string[] }
   | { type: "rps_selector"; prompt?: string }
   | { type: "sealed_box"; label?: string }
-  | { type: "text_input"; label?: string; placeholder?: string; input_type?: string; required?: boolean }
+  | { type: "text_input"; label?: string; placeholder?: string; input_type?: string; required?: boolean; default_value?: string }
   | { type: "slider"; label?: string; min_value: number; max_value: number; step?: number; default_value?: number }
   | { type: "dropdown"; label?: string; options: { label: string; value: string }[]; default_value?: string }
   | { type: "checkbox_group"; group_label?: string; options: { label: string; value: string; checked?: boolean }[] }
+  | { type: "mutation_form"; title?: string; fields: any[] }
+  | { type: "approval_card"; prompt: string; mutation_payload: any }
+  | { type: "filter_bar"; filters: any[] }
   | { type: "chart"; chart_type: "bar" | "line" | "pie"; title?: string; x_axis_label?: string; y_axis_label?: string; data: { label: string; value: number }[] };
 
 export type Message = {
@@ -30,6 +33,8 @@ export type Message = {
   role: "user" | "assistant";
   type: "text" | "a2ui";
   content: string | { components: A2UIComponent[] };
+  tools_called?: string[];
+  source?: "a2ui_submit" | "user_input";
 };
 
 // ---------------------------------------------------------------------------
@@ -39,6 +44,7 @@ export type Message = {
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTools, setActiveTools] = useState<string[]>([]);
   const sessionIdRef = useRef<string | null>(null);
 
   const addMessage = (msg: Omit<Message, "id">) =>
@@ -50,8 +56,9 @@ export function useChat() {
   // ---- Single-turn (POST /chat) ----
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim()) return;
-    addMessage({ role: "user", type: "text", content: text });
+    addMessage({ role: "user", type: "text", content: text, source: "user_input" });
     setLoading(true);
+    setActiveTools([]);
 
     try {
       const res = await fetch(`${API_BASE}/chat`, {
@@ -70,9 +77,9 @@ export function useChat() {
       if (data.session_id) sessionIdRef.current = data.session_id;
 
       if (data.type === "a2ui") {
-        addMessage({ role: "assistant", type: "a2ui", content: data.payload });
+        addMessage({ role: "assistant", type: "a2ui", content: data.payload, tools_called: data.tools_called });
       } else {
-        addMessage({ role: "assistant", type: "text", content: data.text ?? "" });
+        addMessage({ role: "assistant", type: "text", content: data.text ?? "", tools_called: data.tools_called });
       }
     } catch (err) {
       addMessage({
@@ -82,14 +89,16 @@ export function useChat() {
       });
     } finally {
       setLoading(false);
+      setActiveTools([]);
     }
   }, []);
 
   // ---- Streaming (GET /stream via SSE) ----
-  const sendMessageStream = useCallback(async (text: string) => {
+  const sendMessageStream = useCallback(async (text: string, source: "user_input" | "a2ui_submit" = "user_input") => {
     if (!text.trim()) return;
-    addMessage({ role: "user", type: "text", content: text });
+    addMessage({ role: "user", type: "text", content: text, source });
     setLoading(true);
+    setActiveTools([]);
 
     // Placeholder message that gets updated as chunks arrive
     const placeholderId = crypto.randomUUID();
@@ -128,6 +137,15 @@ export function useChat() {
             const event = JSON.parse(raw);
             if (event.type === "session" && event.session_id) {
               sessionIdRef.current = event.session_id;
+            } else if (event.type === "tool_call" && event.tool) {
+              setActiveTools((prev) => [...prev, event.tool]);
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === placeholderId
+                    ? { ...m, tools_called: [...(m.tools_called || []), event.tool] }
+                    : m
+                )
+              );
             } else if (event.type === "chunk" && event.text) {
               setMessages((prev) =>
                 prev.map((m) =>
@@ -154,9 +172,38 @@ export function useChat() {
         )
       );
     } finally {
+      // Parse A2UI if the final text looks like JSON
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (m.id === placeholderId && typeof m.content === "string") {
+            try {
+              const text = m.content.trim();
+              let payload = null;
+              const match = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+              if (match) {
+                payload = JSON.parse(match[1]);
+              } else if (text.startsWith("{")) {
+                payload = JSON.parse(text);
+              }
+              if (payload && Array.isArray(payload.components)) {
+                return { ...m, type: "a2ui", content: payload };
+              }
+            } catch (e) {
+              // Ignore parsing errors, leave as text
+            }
+          }
+          return m;
+        })
+      );
       setLoading(false);
+      setActiveTools([]);
     }
   }, []);
 
-  return { messages, loading, sendMessage, sendMessageStream };
+  const clearChat = useCallback(() => {
+    setMessages([]);
+    sessionIdRef.current = null;
+  }, []);
+
+  return { messages, loading, activeTools, sendMessage, sendMessageStream, clearChat };
 }

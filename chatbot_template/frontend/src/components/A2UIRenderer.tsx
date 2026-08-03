@@ -1,6 +1,7 @@
 "use client";
 
 import type { A2UIComponent } from "@/hooks/useChat";
+import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
 interface A2UIRendererProps {
@@ -9,11 +10,43 @@ interface A2UIRendererProps {
 }
 
 export default function A2UIRenderer({ payload, onAction }: A2UIRendererProps) {
+  const [formData, setFormData] = useState<Record<string, any>>({});
+
+  const handleValueChange = (key: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const hasInputs = payload.components.some((c) =>
+    ["text_input", "slider", "dropdown", "checkbox_group"].includes(c.type)
+  );
+
+  const handleSubmitAll = () => {
+    const serialized = Object.entries(formData)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(", ");
+    onAction?.(`Submitted answers: ${serialized || "None"}`);
+  };
+
   return (
     <div className="a2ui-container">
       {payload.components.map((comp, idx) => (
-        <ComponentNode key={idx} component={comp} onAction={onAction} />
+        <ComponentNode 
+          key={idx} 
+          component={comp} 
+          onAction={onAction} 
+          onValueChange={handleValueChange}
+          formData={formData}
+        />
       ))}
+      {hasInputs && (
+        <button 
+          className="a2ui-button" 
+          style={{ alignSelf: "flex-start", marginTop: "0.5rem" }} 
+          onClick={handleSubmitAll}
+        >
+          Submit All
+        </button>
+      )}
     </div>
   );
 }
@@ -21,9 +54,13 @@ export default function A2UIRenderer({ payload, onAction }: A2UIRendererProps) {
 function ComponentNode({
   component,
   onAction,
+  onValueChange,
+  formData
 }: {
   component: A2UIComponent;
   onAction?: (action: string) => void;
+  onValueChange?: (key: string, value: any) => void;
+  formData?: Record<string, any>;
 }) {
   switch (component.type) {
     case "text":
@@ -48,7 +85,13 @@ function ComponentNode({
           )}
           <div className="card-body">
             {component.body.map((child, i) => (
-              <ComponentNode key={i} component={child} onAction={onAction} />
+              <ComponentNode 
+                key={i} 
+                component={child} 
+                onAction={onAction} 
+                onValueChange={onValueChange} 
+                formData={formData} 
+              />
             ))}
           </div>
         </div>
@@ -99,7 +142,8 @@ function ComponentNode({
         </div>
       );
 
-    case "text_input":
+    case "text_input": {
+      const key = component.label || component.placeholder || "input";
       return (
         <div className="a2ui-text-input">
           {component.label && <label className="input-label">{component.label}</label>}
@@ -108,12 +152,16 @@ function ComponentNode({
             placeholder={component.placeholder} 
             required={component.required}
             className="text-input-field" 
-            onBlur={(e) => onAction?.(`input_${e.target.value}`)}
+            style={{ width: "100%" }}
+            onChange={(e) => onValueChange?.(key, e.target.value)}
+            defaultValue={component.default_value}
           />
         </div>
       );
+    }
 
-    case "slider":
+    case "slider": {
+      const key = component.label || "slider";
       return (
         <div className="a2ui-slider">
           {component.label && <label className="slider-label">{component.label}</label>}
@@ -123,19 +171,23 @@ function ComponentNode({
             max={component.max_value} 
             step={component.step || 1} 
             defaultValue={component.default_value} 
-            onChange={(e) => onAction?.(`slider_${e.target.value}`)}
+            style={{ width: "100%" }}
+            onChange={(e) => onValueChange?.(key, e.target.value)}
           />
         </div>
       );
+    }
 
-    case "dropdown":
+    case "dropdown": {
+      const key = component.label || "dropdown";
       return (
         <div className="a2ui-dropdown">
           {component.label && <label className="dropdown-label">{component.label}</label>}
           <select 
             defaultValue={component.default_value}
-            onChange={(e) => onAction?.(`selected_${e.target.value}`)}
+            onChange={(e) => onValueChange?.(key, e.target.value)}
             className="dropdown-select"
+            style={{ width: "100%" }}
           >
             {component.options.map((opt, i) => (
               <option key={i} value={opt.value}>{opt.label}</option>
@@ -143,8 +195,11 @@ function ComponentNode({
           </select>
         </div>
       );
+    }
 
-    case "checkbox_group":
+    case "checkbox_group": {
+      const key = component.group_label || "checkboxes";
+      const currentValues = formData?.[key] || [];
       return (
         <div className="a2ui-checkbox-group">
           {component.group_label && <label className="checkbox-group-label">{component.group_label}</label>}
@@ -154,7 +209,13 @@ function ComponentNode({
                 <input 
                   type="checkbox" 
                   defaultChecked={opt.checked} 
-                  onChange={(e) => onAction?.(`toggled_${opt.value}_${e.target.checked}`)} 
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    let newValues = [...currentValues];
+                    if (checked) newValues.push(opt.value);
+                    else newValues = newValues.filter((v: string) => v !== opt.value);
+                    onValueChange?.(key, newValues);
+                  }} 
                 />
                 <label>{opt.label}</label>
               </div>
@@ -162,6 +223,7 @@ function ComponentNode({
           </div>
         </div>
       );
+    }
 
     case "chart": {
       const { chart_type, title, x_axis_label, y_axis_label, data } = component;
@@ -196,6 +258,45 @@ function ComponentNode({
         </div>
       );
     }
+
+    case "mutation_form":
+      return (
+        <div className="a2ui-mutation-form a2ui-card">
+          {component.title && <h3>{component.title}</h3>}
+          <div className="form-fields" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            {component.fields?.map((f: any, i: number) => (
+              <div key={i} className="a2ui-text-input">
+                <label className="input-label">{f.label || f.name}</label>
+                <input type={f.type || "text"} className="text-input-field" placeholder={`Enter ${f.name || f.label}...`} />
+              </div>
+            ))}
+          </div>
+          <button className="a2ui-button" style={{ marginTop: "1rem" }} onClick={() => onAction?.(`submit_mutation_${component.title}`)}>Submit</button>
+        </div>
+      );
+
+    case "approval_card":
+      return (
+        <div className="a2ui-approval-card a2ui-card">
+          <h3 style={{ color: "#ec4899" }}>⚠️ Approval Required</h3>
+          <p style={{ marginBottom: "1rem" }}>{component.prompt}</p>
+          <div style={{ display: "flex", gap: "0.75rem" }}>
+            <button className="a2ui-button" style={{ background: "#ec4899", color: "#fff" }} onClick={() => onAction?.("approve_mutation")}>Approve</button>
+            <button className="a2ui-button" style={{ background: "#e2e8f0", color: "#333" }} onClick={() => onAction?.("reject_mutation")}>Reject</button>
+          </div>
+        </div>
+      );
+
+    case "filter_bar":
+      return (
+        <div className="a2ui-filter-bar">
+          {component.filters?.map((f: any, i: number) => (
+            <button key={i} className="filter-pill" onClick={() => onAction?.(`filter_updated_${f.key || f}`)}>
+              {f.label || f}
+            </button>
+          ))}
+        </div>
+      );
 
     default:
       return null;

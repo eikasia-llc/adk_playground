@@ -8,7 +8,7 @@ export default function ChatWindow() {
   const [input, setInput] = useState("");
   // Toggle between single-turn (/chat) and streaming (/stream)
   const [streamMode, setStreamMode] = useState(false);
-  const { messages, loading, sendMessage, sendMessageStream } = useChat();
+  const { messages, loading, activeTools, sendMessage, sendMessageStream, clearChat } = useChat();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to latest message
@@ -28,9 +28,13 @@ export default function ChatWindow() {
     }
   };
 
-  // A2UI button actions re-send the action string as a new message
-  const handleAction = (action: string) => {
-    sendMessage(action);
+  // A2UI button actions route through the same pipeline
+  const handleAction = async (action: string) => {
+    if (streamMode) {
+      await sendMessageStream(action, "a2ui_submit");
+    } else {
+      await sendMessage(action);
+    }
   };
 
   return (
@@ -45,16 +49,32 @@ export default function ChatWindow() {
           alignItems: "center",
         }}
       >
-        <strong>Template Chatbot - Testing</strong>
-        <label style={{ fontSize: "0.85rem", cursor: "pointer" }}>
-          <input
-            type="checkbox"
-            checked={streamMode}
-            onChange={(e) => setStreamMode(e.target.checked)}
-            style={{ marginRight: "0.4rem" }}
-          />
-          Streaming
-        </label>
+        <strong>A2UI Template Chatbot - Testing</strong>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <button 
+            onClick={clearChat} 
+            style={{ 
+              padding: "0.3rem 0.6rem", 
+              fontSize: "0.85rem", 
+              background: "#e2e8f0", 
+              color: "#333", 
+              border: "none", 
+              borderRadius: "4px",
+              cursor: "pointer"
+            }}
+          >
+            Restart
+          </button>
+          <label style={{ fontSize: "0.85rem", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={streamMode}
+              onChange={(e) => setStreamMode(e.target.checked)}
+              style={{ marginRight: "0.4rem" }}
+            />
+            Streaming
+          </label>
+        </div>
       </div>
 
       {/* Message list */}
@@ -68,8 +88,26 @@ export default function ChatWindow() {
           <MessageBubble key={msg.id} message={msg} onAction={handleAction} />
         ))}
         {loading && (
-          <div className="message assistant" style={{ opacity: 0.5 }}>
-            Thinking…
+          <div className="message assistant" style={{ opacity: 0.8, backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: activeTools.length > 0 ? "0.5rem" : "0" }}>
+              <div className="spinner" style={{ width: "12px", height: "12px", border: "2px solid #cbd5e1", borderTopColor: "#3b82f6", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+              <span style={{ color: "#475569", fontWeight: 500 }}>Chatty is thinking...</span>
+            </div>
+            {activeTools.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginTop: "0.5rem" }}>
+                {activeTools.map((tool, idx) => (
+                  <div key={idx} style={{ fontSize: "0.8rem", color: "#64748b", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                    <span>⚙️</span> Calling {tool}...
+                  </div>
+                ))}
+              </div>
+            )}
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
           </div>
         )}
         <div ref={bottomRef} />
