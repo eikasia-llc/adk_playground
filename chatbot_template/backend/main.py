@@ -2,7 +2,10 @@ import os
 import json
 import time
 import uuid
+import re
+import asyncio
 from contextlib import asynccontextmanager, contextmanager
+from agent.agent import session_queues
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -202,36 +205,57 @@ async def stream(
         role="user",
         parts=[types.Part(text=message)],
     )
+    await _ensure_session(session_id)
+    runner = _make_runner(session_id)
 
     async def event_generator():
         yield f"data: {json.dumps({'type': 'session', 'session_id': session_id})}\n\n"
+        stream_start = time.perf_counter()
+        q = asyncio.Queue()
+        q._loop = asyncio.get_running_loop()
+        session_queues[session_id] = q
 
-        # Track time-to-first-chunk separately from total stream time — the
-        # first matters for perceived latency, the second for end-to-end cost.
-        t0 = time.perf_counter()
-        first_chunk_logged = False
+        async def run_runner():
+            first_chunk_logged = False
+            try:
+                async for event in runner.run_async(
+                    user_id=session_id,
+                    session_id=session_id,
+                    new_message=content,
+                ):
+                    if event.content and event.content.parts:
+                        for part in event.content.parts:
+                            if part.function_call:
+                                q.put_nowait(f"data: {json.dumps({'type': 'tool_call', 'tool': part.function_call.name})}\n\n")
+                            elif part.text:
+                                chunk = part.text
+                                if chunk:
+                                    if not first_chunk_logged:
+                                        first_chunk_logged = True
+                                        elapsed = (time.perf_counter() - stream_start) * 1000
+                                        print(f"[LATENCY] stream:time_to_first_chunk: {elapsed:.1f}ms", flush=True)
+                                    q.put_nowait(f"data: {json.dumps({'type': 'chunk', 'text': chunk})}\n\n")
+                q.put_nowait(None)
+            except Exception as e:
+                q.put_nowait(e)
 
-        async for event in runner.run_async(
-            user_id=session_id,
-            session_id=session_id,
-            new_message=content,
-        ):
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if part.function_call:
-                        yield f"data: {json.dumps({'type': 'tool_call', 'tool': part.function_call.name})}\n\n"
+        task = asyncio.create_task(run_runner())
 
-                chunk = event.content.parts[0].text or ""
-                if chunk:
-                    if not first_chunk_logged:
-                        elapsed_ms = (time.perf_counter() - t0) * 1000
-                        print(f"[LATENCY] stream:time_to_first_chunk: {elapsed_ms:.1f}ms", flush=True)
-                        first_chunk_logged = True
-                    yield f"data: {json.dumps({'type': 'chunk', 'text': chunk})}\n\n"
+        try:
+            while True:
+                item = await q.get()
+                if item is None:
+                    break
+                if isinstance(item, Exception):
+                    raise item
+                yield item
 
-        total_ms = (time.perf_counter() - t0) * 1000
-        print(f"[LATENCY] stream:total: {total_ms:.1f}ms", flush=True)
-        yield "data: [DONE]\n\n"
+            yield "data: [DONE]\n\n"
+            elapsed_total = (time.perf_counter() - stream_start) * 1000
+            print(f"[LATENCY] stream:total: {elapsed_total:.1f}ms", flush=True)
+        finally:
+            session_queues.pop(session_id, None)
+            task.cancel()
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 

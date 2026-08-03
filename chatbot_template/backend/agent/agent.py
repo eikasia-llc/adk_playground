@@ -18,11 +18,54 @@ _GEN_CONFIG = types.GenerateContentConfig(
     ),
 )
 
+session_queues = {}
+
+def global_before_tool_callback(tool, args, tool_context):
+    session_id = getattr(tool_context.session, "id", None) if tool_context and getattr(tool_context, "session", None) else None
+    
+    # Fallback for dev if session.id is not populated
+    if not session_id and len(session_queues) == 1:
+        session_id = list(session_queues.keys())[0]
+
+    if session_id in session_queues:
+        q = session_queues[session_id]
+        payload = f"data: {json.dumps({'type': 'tool_call', 'tool': tool.name})}\n\n"
+        if hasattr(q, "_loop"):
+            q._loop.call_soon_threadsafe(q.put_nowait, payload)
+        else:
+            q.put_nowait(payload)
+    return None
+
+def global_after_tool_callback(tool, args, response, tool_context):
+    session_id = getattr(tool_context.session, "id", None) if tool_context and getattr(tool_context, "session", None) else None
+    
+    if not session_id and len(session_queues) == 1:
+        session_id = list(session_queues.keys())[0]
+
+    if session_id in session_queues:
+        q = session_queues[session_id]
+        try:
+            if isinstance(response, str):
+                resp_str = response
+            else:
+                resp_str = json.dumps(response)
+        except Exception:
+            resp_str = str(response)
+
+        payload = f"data: {{json.dumps({{'type': 'tool_response', 'tool': tool.name, 'output': resp_str}})}}\n\n"
+        if hasattr(q, "_loop"):
+            q._loop.call_soon_threadsafe(q.put_nowait, payload)
+        else:
+            q.put_nowait(payload)
+    return response
+
 root_agent = LlmAgent(
     model="gemini-3.5-flash",
     name="chatty_agent",
     description="Chatty — a mischievous trickster who loves playing Rock-Paper-Scissors.",
     generate_content_config=_GEN_CONFIG,
+    before_tool_callback=global_before_tool_callback,
+    after_tool_callback=global_after_tool_callback,
     instruction="""
 You are Chatty 🧚, a magical teacher fairy who loves teaching mortals about the wonders of interactive magic (A2UI components).
 You speak in a whimsical, encouraging, and slightly archaic voice, using magic metaphors for UI elements.

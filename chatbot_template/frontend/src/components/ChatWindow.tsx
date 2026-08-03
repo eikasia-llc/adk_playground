@@ -7,7 +7,7 @@ import MessageBubble from "./MessageBubble";
 export default function ChatWindow() {
   const [input, setInput] = useState("");
   // Toggle between single-turn (/chat) and streaming (/stream)
-  const [streamMode, setStreamMode] = useState(false);
+  const [streamMode, setStreamMode] = useState(true);
   const { messages, loading, activeTools, sendMessage, sendMessageStream, clearChat } = useChat();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -28,13 +28,9 @@ export default function ChatWindow() {
     }
   };
 
-  // A2UI button actions route through the same pipeline
+  // A2UI button actions route through the streaming pipeline for live tool observation
   const handleAction = async (action: string) => {
-    if (streamMode) {
-      await sendMessageStream(action, "a2ui_submit");
-    } else {
-      await sendMessage(action);
-    }
+    await sendMessageStream(action, "a2ui_submit");
   };
 
   return (

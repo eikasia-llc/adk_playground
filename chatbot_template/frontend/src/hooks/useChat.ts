@@ -34,6 +34,7 @@ export type Message = {
   type: "text" | "a2ui";
   content: string | { components: A2UIComponent[] };
   tools_called?: string[];
+  tool_outputs?: string[];
   source?: "a2ui_submit" | "user_input";
 };
 
@@ -146,6 +147,14 @@ export function useChat() {
                     : m
                 )
               );
+            } else if (event.type === "tool_response" && event.tool) {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === placeholderId
+                    ? { ...m, tool_outputs: [...(m.tool_outputs || []), event.output || ""] }
+                    : m
+                )
+              );
             } else if (event.type === "chunk" && event.text) {
               setMessages((prev) =>
                 prev.map((m) =>
@@ -186,7 +195,11 @@ export function useChat() {
                 payload = JSON.parse(text);
               }
               if (payload && Array.isArray(payload.components)) {
-                return { ...m, type: "a2ui", content: payload };
+                const uiTools = payload.components
+                  .filter((c: any) => c.type && c.type !== "text")
+                  .map((c: any) => `a2ui_${c.type}`);
+                const combinedTools = [...(m.tools_called || []), ...uiTools];
+                return { ...m, type: "a2ui", content: payload, tools_called: combinedTools };
               }
             } catch (e) {
               // Ignore parsing errors, leave as text

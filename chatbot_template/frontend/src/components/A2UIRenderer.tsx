@@ -264,14 +264,34 @@ function ComponentNode({
         <div className="a2ui-mutation-form a2ui-card">
           {component.title && <h3>{component.title}</h3>}
           <div className="form-fields" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            {component.fields?.map((f: any, i: number) => (
-              <div key={i} className="a2ui-text-input">
-                <label className="input-label">{f.label || f.name}</label>
-                <input type={f.type || "text"} className="text-input-field" placeholder={`Enter ${f.name || f.label}...`} />
-              </div>
-            ))}
+            {component.fields?.map((f: any, i: number) => {
+              const key = f.name || f.label || `field_${i}`;
+              return (
+                <div key={i} className="a2ui-text-input">
+                  <label className="input-label">{f.label || f.name}</label>
+                  <input 
+                    type={f.type || "text"} 
+                    className="text-input-field" 
+                    placeholder={`Enter ${f.name || f.label}...`}
+                    onChange={(e) => onValueChange?.(key, e.target.value)}
+                  />
+                </div>
+              );
+            })}
           </div>
-          <button className="a2ui-button" style={{ marginTop: "1rem" }} onClick={() => onAction?.(`submit_mutation_${component.title}`)}>Submit</button>
+          <button 
+            className="a2ui-button" 
+            style={{ marginTop: "1rem" }} 
+            onClick={() => {
+              const fields = component.fields?.map((f: any, i: number) => {
+                const key = f.name || f.label || `field_${i}`;
+                return `${key}: ${formData?.[key] || ""}`;
+              }).join(", ");
+              onAction?.(`Submit mutation ${component.title || ""}: ${fields}`);
+            }}
+          >
+            Submit
+          </button>
         </div>
       );
 
