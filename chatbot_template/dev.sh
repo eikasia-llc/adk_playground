@@ -20,7 +20,7 @@ source .venv/bin/activate
 if [ ! -f ".env" ]; then
   echo "  WARNING: backend/.env not found. Copying from .env.example..."
   cp .env.example .env
-  echo "  Edit backend/.env and add your GOOGLE_API_KEY, then re-run."
+  echo "  Edit backend/.env and add your GEMINI_API_KEY, then re-run."
   exit 1
 fi
 

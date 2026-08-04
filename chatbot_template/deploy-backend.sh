@@ -23,7 +23,7 @@ REGION="${REGION:-us-central1}"
 AR_REPO="${AR_REPO:-chatbot-template-app}"
 SERVICE="${SERVICE:-chatbot-template-app-backend}"
 RUNTIME_SA="${RUNTIME_SA:-chatbot-template-app-sa@${PROJECT_ID}.iam.gserviceaccount.com}"
-SECRET_NAME="${SECRET_NAME:-GOOGLE_API_KEY}"
+SECRET_NAME="${SECRET_NAME:-GEMINI_API_KEY}"
 PROD_BRANCH="chatbot-template"
 
 # ---- Branch guard -----------------------------------------------------------
@@ -81,7 +81,7 @@ gcloud run deploy "$SERVICE" \
   --platform=managed \
   --no-allow-unauthenticated \
   --service-account="$RUNTIME_SA" \
-  --set-secrets="GOOGLE_API_KEY=${SECRET_NAME}:latest" \
+  --set-secrets="GEMINI_API_KEY=${SECRET_NAME}:latest" \
   --set-env-vars="ALLOWED_ORIGINS=" \
   --min-instances=0 \
   --max-instances=2 \

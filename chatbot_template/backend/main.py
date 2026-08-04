@@ -40,7 +40,7 @@ def log_latency(stage: str):
 load_dotenv()
 
 # ---------------------------------------------------------------------------
-# Lazy agent import — ADK requires GOOGLE_API_KEY to be set before import
+# Lazy agent import — ADK requires GEMINI_API_KEY to be set before import
 # ---------------------------------------------------------------------------
 from agent import root_agent
 

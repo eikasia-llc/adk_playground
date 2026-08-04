@@ -9,17 +9,19 @@ last_checked: '2026-05-17'
 ---
 # Chatbot Template
 
-## Restored: 2026-08-04 (previously decommissioned 2026-07-31)
+## Live on `eikasia-chatbot-template` (rebuilt 2026-08-04)
 
-> **This app's GCP project (`chatbot-template-eikasia`, project number `207274917577`) was deleted on 2026-07-31 and restored on 2026-08-04, inside the 30-day undelete window.**
+> **Production URL:** <https://chatbot-template-app--eikasia-chatbot-template.us-east4.hosted.app>
 >
-> - **Decommission reason:** legacy project teardown, directed by the CTO, alongside two sibling projects (Demo Chatbot, Local Nexus) which remain restorable until **2026-08-22**.
-> - **Method:** whole-project delete (`gcloud projects delete`), chosen *because it is recoverable*.
-> - **Restore:** `gcloud projects undelete chatbot-template-eikasia` → `ACTIVE`, project number preserved.
-> - **What survived:** everything except the billing link — service accounts, Artifact Registry images, Cloud Run services, Secret Manager secrets and their IAM bindings, and the App Hosting backend with its GitHub link intact. An earlier revision of this section claimed secrets and images were "destroyed with the project"; that describes what happens only *after* the window closes, and the restore disproved it.
-> - **Required after restore:** re-linking billing (the original account was at its project-link quota, so the project now sits on a different one) and a fresh `GOOGLE_API_KEY` secret version, since the Gemini keys were abandoned at teardown.
-> - **Record:** `cps_graphql` worklog `8120181e-7bbe-478e-bc2f-4a048297ac44` (decommission, `control_tower`) and the restore worklog for 2026-08-04. Evidence artifacts in `control_tower/artifacts/`; the decommission's own artifacts were never committed.
-> - **Procedure:** `kb_mcp://content/how-to/INFRA_RECOMMISSION_SKILL.md`.
+> - **GCP project:** `eikasia-chatbot-template`, project number `452383064665`, billing on `Billing Argentina`.
+> - **Backend:** Cloud Run `chatbot-template-app-backend` in `us-central1`, IAM-only.
+> - **Frontend:** App Hosting backend `chatbot-template-app` in **`us-east4`** — a region split from every other resource, so each proxied request makes a cross-region hop. Fixable only by recreating the backend.
+>
+> ### History
+>
+> The original project `chatbot-template-eikasia` (`207274917577`) was deleted 2026-07-31 in a CTO-directed teardown, then undeleted 2026-08-04 inside the 30-day window. **The restore failed.** Resource Manager reported `ACTIVE` and Secret Manager worked normally, but Artifact Registry rejected every read and write with `denied: Project #207274917577 has been deleted`, and Cloud Run could not create a revision even from a public image. Both persisted for an hour with no progress, so the restore was abandoned and this project provisioned fresh. See `kb_mcp://content/how-to/INFRA_RECOMMISSION_SKILL.md` for the per-service probe that distinguishes a slow restore from a dead one.
+>
+> Records: `cps_graphql` worklogs `8120181e…` (2026-07-31 decommission) and the 2026-08-04 session entries; evidence in `control_tower/artifacts/`.
 
 A minimal production-ready ADK chatbot:
 
