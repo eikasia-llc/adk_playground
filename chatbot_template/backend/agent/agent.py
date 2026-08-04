@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 from .imports import LlmAgent, McpToolset, StdioConnectionParams, StdioServerParameters, types
 
 _MCP_SERVER = os.path.abspath(
@@ -36,7 +37,7 @@ def global_before_tool_callback(tool, args, tool_context):
             q.put_nowait(payload)
     return None
 
-def global_after_tool_callback(tool, args, response, tool_context):
+def global_after_tool_callback(tool, args, tool_context, tool_response):
     session_id = getattr(tool_context.session, "id", None) if tool_context and getattr(tool_context, "session", None) else None
     
     if not session_id and len(session_queues) == 1:
@@ -45,19 +46,19 @@ def global_after_tool_callback(tool, args, response, tool_context):
     if session_id in session_queues:
         q = session_queues[session_id]
         try:
-            if isinstance(response, str):
-                resp_str = response
+            if isinstance(tool_response, str):
+                resp_str = tool_response
             else:
-                resp_str = json.dumps(response)
+                resp_str = json.dumps(tool_response)
         except Exception:
-            resp_str = str(response)
+            resp_str = str(tool_response)
 
-        payload = f"data: {{json.dumps({{'type': 'tool_response', 'tool': tool.name, 'output': resp_str}})}}\n\n"
+        payload = f"data: {json.dumps({'type': 'tool_response', 'tool': tool.name, 'output': resp_str})}\n\n"
         if hasattr(q, "_loop"):
             q._loop.call_soon_threadsafe(q.put_nowait, payload)
         else:
             q.put_nowait(payload)
-    return response
+    return tool_response
 
 root_agent = LlmAgent(
     model="gemini-3.5-flash",

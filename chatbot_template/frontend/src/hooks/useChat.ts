@@ -188,7 +188,7 @@ export function useChat() {
             try {
               const text = m.content.trim();
               let payload = null;
-              const match = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+              const match = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
               if (match) {
                 payload = JSON.parse(match[1]);
               } else if (text.startsWith("{")) {

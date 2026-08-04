@@ -9,22 +9,21 @@ last_checked: '2026-05-17'
 ---
 # Chatbot Template
 
-## Decommissioned: 2026-07-23
+## Restored: 2026-08-04 (previously decommissioned 2026-07-31)
 
-> **This app's GCP project (`chatbot-template-eikasia`, project number `207274917577`) was decommissioned on 2026-07-23.**
+> **This app's GCP project (`chatbot-template-eikasia`, project number `207274917577`) was deleted on 2026-07-31 and restored on 2026-08-04, inside the 30-day undelete window.**
 >
-> - **Reason:** legacy project teardown, directed by the CTO.
-> - **Authorized by:** CTO (`eikasia@eikasia.com`).
-> - **Method:** whole-project delete (`gcloud projects delete`). State: `DELETE_REQUESTED`.
-> - **Recovery:** `gcloud projects undelete chatbot-template-eikasia` until **2026-08-22** (~30-day window); permanent thereafter.
-> - **Data:** no data preserved (no Firestore/BigQuery data existed; secrets and images destroyed with the project). Source in this repo is retained and reproducible.
-> - **Record:** `control_tower/artifacts/2026-07-23_010_decommission-legacy-projects_decommission-record.md`.
->
-> The documentation below describes the app as it ran before decommissioning and is kept as the audit trail.
+> - **Decommission reason:** legacy project teardown, directed by the CTO, alongside two sibling projects (Demo Chatbot, Local Nexus) which remain restorable until **2026-08-22**.
+> - **Method:** whole-project delete (`gcloud projects delete`), chosen *because it is recoverable*.
+> - **Restore:** `gcloud projects undelete chatbot-template-eikasia` → `ACTIVE`, project number preserved.
+> - **What survived:** everything except the billing link — service accounts, Artifact Registry images, Cloud Run services, Secret Manager secrets and their IAM bindings, and the App Hosting backend with its GitHub link intact. An earlier revision of this section claimed secrets and images were "destroyed with the project"; that describes what happens only *after* the window closes, and the restore disproved it.
+> - **Required after restore:** re-linking billing (the original account was at its project-link quota, so the project now sits on a different one) and a fresh `GOOGLE_API_KEY` secret version, since the Gemini keys were abandoned at teardown.
+> - **Record:** `cps_graphql` worklog `8120181e-7bbe-478e-bc2f-4a048297ac44` (decommission, `control_tower`) and the restore worklog for 2026-08-04. Evidence artifacts in `control_tower/artifacts/`; the decommission's own artifacts were never committed.
+> - **Procedure:** `kb_mcp://content/how-to/INFRA_RECOMMISSION_SKILL.md`.
 
 A minimal production-ready ADK chatbot:
 
-- **Backend**: Python 3.11 + FastAPI + Google ADK (`gemini-2.5-flash`). Endpoints: `POST /chat`, `GET /stream` (SSE), `GET /health`.
+- **Backend**: Python 3.11 + FastAPI + Google ADK (`gemini-3.5-flash`). Endpoints: `POST /chat`, `GET /stream` (SSE), `GET /health`.
 - **Frontend**: Next.js 14 (App Router, TypeScript, SSR). Server-side proxy routes call the backend with OIDC ID tokens minted via the GCP metadata server.
 
 See `content/how-to/ADK_CHATBOT_SKILL.md` in the knowledge_base for the development pattern and `content/reference/A2UI_REF.md` for the agent-to-UI protocol.

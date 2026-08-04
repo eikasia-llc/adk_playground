@@ -98,12 +98,10 @@ async def _ensure_session(session_id: str) -> None:
         pass  # session already exists
 
 
-import re
-
 def _parse_response(text: str) -> dict:
     """Try to detect an A2UI JSON payload; fall back to plain text."""
     # Look for a JSON block anywhere in the text
-    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    json_match = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
     if json_match:
         try:
             payload = json.loads(json_match.group(1))
@@ -205,8 +203,6 @@ async def stream(
         role="user",
         parts=[types.Part(text=message)],
     )
-    await _ensure_session(session_id)
-    runner = _make_runner(session_id)
 
     async def event_generator():
         yield f"data: {json.dumps({'type': 'session', 'session_id': session_id})}\n\n"
@@ -225,9 +221,10 @@ async def stream(
                 ):
                     if event.content and event.content.parts:
                         for part in event.content.parts:
-                            if part.function_call:
-                                q.put_nowait(f"data: {json.dumps({'type': 'tool_call', 'tool': part.function_call.name})}\n\n")
-                            elif part.text:
+                            # tool_call events are emitted by the agent's
+                            # before_tool_callback, which fires for every tool
+                            # invocation; emitting here too would duplicate them.
+                            if part.text:
                                 chunk = part.text
                                 if chunk:
                                     if not first_chunk_logged:
