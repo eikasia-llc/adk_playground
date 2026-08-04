@@ -1,0 +1,15 @@
+# Keeps `gcloud builds submit` from uploading the local virtualenv (~718MB).
+# Mirrors .dockerignore; without this the build context is three orders of
+# magnitude larger than the source it needs.
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
+.pytest_cache/
+.mypy_cache/
+.git/
+.gitignore
+.DS_Store
+data/

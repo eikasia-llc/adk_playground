@@ -18,7 +18,7 @@
 set -euo pipefail
 
 # ---- Configuration ----------------------------------------------------------
-PROJECT_ID="${PROJECT_ID:-chatbot-template-eikasia}"
+PROJECT_ID="${PROJECT_ID:-eikasia-chatbot-template}"
 REGION="${REGION:-us-central1}"
 AR_REPO="${AR_REPO:-chatbot-template-app}"
 SERVICE="${SERVICE:-chatbot-template-app-backend}"
