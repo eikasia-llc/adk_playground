@@ -25,6 +25,6 @@ env:
   #
   # Cloud Run backend URL (set during Phase 4 of onboarding).
   - variable: BACKEND_URL
-    value: https://chatbot-template-app-backend-207274917577.us-central1.run.app
+    value: https://chatbot-template-app-backend-452383064665.us-central1.run.app
     availability:
       - RUNTIME
