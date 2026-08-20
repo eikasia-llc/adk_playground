@@ -61,8 +61,8 @@ from google.adk.tools import FunctionTool
 # Context is what both tool functions and lifecycle callbacks receive.
 # `ToolContext` is an alias for it, kept here because tool signatures
 # conventionally annotate with that name.
-from google.adk.agents.context import Context
-from google.adk.tools import ToolContext
+from google.adk.tools.tool_context import ToolContext
+Context = ToolContext
 
 # BaseTool is the type a before/after tool callback is handed as its first
 # argument — needed to type the guardrails.

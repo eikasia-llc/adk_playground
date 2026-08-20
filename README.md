@@ -111,6 +111,7 @@ This repository is organized to separate conversational contexts and agent code:
   - `workflow_agents/tools/loop_control.py`: The `exit_loop` tool that lets the reviewer LlmAgent signal the LoopAgent to stop iterating.
   - `workflow_agents/WORKFLOW_SKILL.md`: Architecture guide and implementation reference for all three workflow agent types.
   - `workflow_agents/.env`: A local, git-ignored file containing your `GOOGLE_API_KEY`.
+- `adk_harness/`: A **self-owned minimal agent harness** built entirely in ADK. Unlike the other projects that rely on `adk run` to own the execution loop, this project manually instantiates the `Runner` and `SessionService`. It demonstrates how to intercept the loop to build categorical path/bash guardrails and interactive Human-In-The-Loop (HITL) confirmation gates. See `adk_harness/README_HARNESS.md` for a full file-to-primitive mapping.
 - `ecosystem/`: A **visual multi-agent architecture designer** — an n8n-style drag-and-drop canvas for designing ADK pipelines and exporting working Python code. Built with React 18 + Vite + React Flow.
   - Run: `cd ecosystem && npm install && npm run dev` → opens at `http://localhost:5173`.
   - Drag nodes (LlmAgent, SequentialAgent, ParallelAgent, LoopAgent, Tool, McpToolset) onto the canvas, connect them with edges, edit properties in the right panel, and click **Export Python** to download a working `agent.py`.

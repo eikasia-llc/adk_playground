@@ -13,13 +13,14 @@ from .read import read_file
 from .write import write_file
 from .edit import edit_file
 from .bash import run_bash
+from .search import grep_search, glob_search
 
 # The order here is the order the model sees them in its tool list.
-ALL_TOOLS = [read_file, write_file, edit_file, run_bash]
+ALL_TOOLS = [read_file, write_file, edit_file, run_bash, grep_search, glob_search]
 
 # The subset that changes state. The guardrails and the HITL gate both need to
 # know which calls are consequential, and naming that once keeps the two
 # layers from drifting apart.
 MUTATING_TOOLS = {"write_file", "edit_file", "run_bash"}
 
-__all__ = ["read_file", "write_file", "edit_file", "run_bash", "ALL_TOOLS", "MUTATING_TOOLS"]
+__all__ = ["read_file", "write_file", "edit_file", "run_bash", "grep_search", "glob_search", "ALL_TOOLS", "MUTATING_TOOLS"]

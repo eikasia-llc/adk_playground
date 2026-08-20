@@ -1,0 +1,10 @@
+# Pinned to the versions verified locally. google-adk was previously >=1.0.0,
+# which let the container install a newer ADK that no longer exports
+# McpToolset from google.adk.tools.mcp_tool — the container then crashed on
+# import and Cloud Run never bound the port.
+google-adk==1.28.1
+fastapi==0.135.3
+uvicorn[standard]==0.43.0
+python-dotenv==1.2.2
+pydantic==2.12.5
+mcp==1.27.0

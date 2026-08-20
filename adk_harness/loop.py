@@ -46,12 +46,16 @@ Tool calls are printed as they are dispatched.
 def _print_tool_calls(event) -> None:
     """Surface dispatch as it happens."""
     for call in event.get_function_calls():
+        if call.name == "adk_request_confirmation":
+            continue
         args = ", ".join(f"{k}={v!r}" for k, v in (call.args or {}).items())
         if len(args) > 160:
             args = args[:157] + "..."
         print(f"  \033[2m→ {call.name}({args})\033[0m", flush=True)
 
     for response in event.get_function_responses():
+        if getattr(response, "name", "") == "adk_request_confirmation":
+            continue
         result = response.response
         if isinstance(result, dict):
             result = result.get("result", result)
@@ -61,25 +65,61 @@ def _print_tool_calls(event) -> None:
         print(f"  \033[2m← {text}\033[0m", flush=True)
 
 
-async def _run_turn(runner: Runner, session_id: str, message: str) -> None:
+async def _run_turn(
+    runner: Runner, 
+    session_id: str, 
+    message: str | None = None,
+    function_responses: list[types.FunctionResponse] | None = None
+) -> None:
     """One user turn: send it, stream the events, print the answer.
 
     This is the loop the harness owns. The `async for` is the agent loop —
     ADK calls the model, hands us tool-call events, executes the tools through
     our callbacks, and comes back with more events until the turn is final.
     """
-    content = types.Content(role="user", parts=[types.Part(text=message)])
+    content = types.Content(role="user", parts=[types.Part(text=message)]) if message else None
 
     final_text: list[str] = []
-    async for event in runner.run_async(
-        user_id=DEFAULT_USER_ID, session_id=session_id, new_message=content
-    ):
-        _print_tool_calls(event)
+    
+    while True:
+        pending_confirmations = []
+        
+        async for event in runner.run_async(
+            user_id=DEFAULT_USER_ID, 
+            session_id=session_id, 
+            new_message=content,
+            function_responses=function_responses
+        ):
+            _print_tool_calls(event)
+            
+            for call in event.get_function_calls():
+                if call.name == "adk_request_confirmation":
+                    pending_confirmations.append(call)
 
-        if event.is_final_response() and event.content and event.content.parts:
-            for part in event.content.parts:
-                if part.text:
-                    final_text.append(part.text)
+            if event.is_final_response() and event.content and event.content.parts:
+                for part in event.content.parts:
+                    if part.text:
+                        final_text.append(part.text)
+                        
+        content = None
+        function_responses = None
+        
+        if pending_confirmations:
+            responses = []
+            for call in pending_confirmations:
+                hint = (call.args or {}).get("hint", "Confirm?")
+                ans = input(f"\n\033[33m[HITL Gate] {hint}\033[0m [y/N]: ").strip().lower()
+                approved = ans in ("y", "yes")
+                responses.append(
+                    types.FunctionResponse(
+                        id=call.id,
+                        name=call.name,
+                        response={"approved": approved}
+                    )
+                )
+            function_responses = responses
+        else:
+            break
 
     print("\n" + ("".join(final_text).strip() or "(no reply)") + "\n", flush=True)
 

@@ -11,6 +11,7 @@ callbacks *on the agent*. Keeping construction in a function means the loop
 can build an agent with them, and a test can build one without.
 """
 
+from . import gate
 from . import guardrails
 from .config import MODEL
 from .imports import LlmAgent
@@ -23,16 +24,27 @@ from .tools import ALL_TOOLS
 _DEFAULT = object()
 
 INSTRUCTION = """You are a coding agent working inside a sandboxed workspace \
-directory. You have four tools: read_file, write_file, edit_file, and run_bash.
+directory. You have six tools: read_file, write_file, edit_file, run_bash, \
+grep_search, and glob_search.
 
 Everything you can reach lives under the workspace root. Paths are relative to \
-it. You have no tools beyond these four — use run_bash for anything else you \
-need, including listing directories and searching file contents.
+it. You have no tools beyond these six — use run_bash for any execution you \
+need, but prefer grep_search and glob_search for exploring the codebase.
 
 Read a file before you edit it. Prefer edit_file over write_file when changing \
 part of an existing file. If a tool refuses a request, read what it says and \
 adjust rather than retrying the same call.
 """
+
+
+def combined_before_tool_callback(tool, args: dict, tool_context) -> dict | None:
+    # Guardrails run first (categorical refusal)
+    refusal = guardrails.before_tool_callback(tool, args, tool_context)
+    if refusal is not None:
+        return refusal
+        
+    # HITL gate runs second (pause and ask)
+    return gate.before_tool_callback(tool, args, tool_context)
 
 
 def build_agent(
@@ -52,7 +64,7 @@ def build_agent(
         name: Agent name, surfaced in event authorship.
     """
     if before_tool_callback is _DEFAULT:
-        before_tool_callback = guardrails.before_tool_callback
+        before_tool_callback = combined_before_tool_callback
     if after_tool_callback is _DEFAULT:
         after_tool_callback = guardrails.after_tool_callback
 

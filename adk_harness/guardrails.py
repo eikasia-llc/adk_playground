@@ -48,6 +48,8 @@ PATH_ARGS = {
     "read_file": "path",
     "write_file": "path",
     "edit_file": "path",
+    "grep_search": "path",
+    "glob_search": "path",
 }
 
 # Shell shapes that are refused outright. Each entry is (pattern, reason).

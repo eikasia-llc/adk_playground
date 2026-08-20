@@ -10,7 +10,7 @@ import os
 import pytest
 
 from adk_harness.config import WORKSPACE_DIR
-from adk_harness.tools import read_file, write_file, edit_file, run_bash
+from adk_harness.tools import read_file, write_file, edit_file, run_bash, grep_search, glob_search
 
 
 @pytest.fixture(autouse=True)
@@ -145,3 +145,46 @@ def test_bash_times_out_without_hanging():
 
 def test_bash_rejects_empty_command():
     assert "empty" in run_bash("   ").lower()
+
+
+# --- grep_search -------------------------------------------------------------
+
+
+def test_grep_finds_match_with_line_numbers():
+    _write("g1.txt", "needle\nhaystack\nneedle")
+    _write("g2.txt", "nothing here")
+    out = grep_search("needle")
+    assert "g1.txt" in out
+    assert ":1:" in out
+    assert ":3:" in out
+    assert "g2.txt" not in out
+
+
+def test_grep_reports_no_matches():
+    _write("g3.txt", "hello")
+    assert "no matches" in grep_search("world").lower()
+
+
+def test_grep_handles_invalid_regex():
+    out = grep_search("[invalid")
+    assert "error" in out.lower()
+
+
+# --- glob_search -------------------------------------------------------------
+
+
+def test_glob_finds_files_recursively():
+    _write("top.py", "")
+    os.makedirs(os.path.join(WORKSPACE_DIR, "nested"))
+    _write("nested/deep.py", "")
+    _write("nested/other.txt", "")
+    
+    out = glob_search("*.py")
+    assert "top.py" in out
+    assert "nested/deep.py" in out
+    assert "other.txt" not in out
+
+
+def test_glob_reports_no_files_found():
+    _write("only.txt", "")
+    assert "no files found" in glob_search("*.js").lower()

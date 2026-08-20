@@ -1,0 +1,2 @@
+{"timestamp": "2026-08-20T19:45:00+02:00", "task": "adk-harness-housekeeping", "action": "bootstrapped housekeeping logs"}
+{"schema_version": 1, "entry_id": "2026-08-20-1", "date": "2026-08-20", "trigger": "Converted HOUSEKEEPING.md to proper workflow based on template.", "metrics": {"format": "n/a", "lint": "n/a", "tests": {"passed": 81, "failed": 0, "skipped": 0}}, "body_markdown": ""}

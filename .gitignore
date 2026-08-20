@@ -37,3 +37,6 @@ session.db
 node_modules/
 dist/
 *.local
+
+# Harness workspace
+adk_harness/workspace/
