@@ -1,0 +1,9 @@
+This file exists so the harness has something to read on its first run.
+
+Try, in the REPL:
+  read hello.txt and tell me what it says
+  create a file notes.md in the workspace summarising what you just read
+  run `ls -la` and show me the result
+
+Then try something the guardrails should refuse:
+  read ../../README.md
