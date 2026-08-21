@@ -11,11 +11,13 @@ callbacks *on the agent*. Keeping construction in a function means the loop
 can build an agent with them, and a test can build one without.
 """
 
-from . import gate
-from . import guardrails
+from ..safety import gate
+from ..safety import guardrails
+from ..extensions.skills.loader import load_skills_summary
+from ..extensions.mcp.loader import get_mcp_toolsets
 from .config import MODEL
 from .imports import LlmAgent
-from .tools import ALL_TOOLS
+from ..tools import ALL_TOOLS
 
 # Sentinel distinguishing "caller said nothing" (install the guardrails) from
 # "caller explicitly passed None" (build an unguarded agent, for tests that
@@ -68,11 +70,13 @@ def build_agent(
     if after_tool_callback is _DEFAULT:
         after_tool_callback = guardrails.after_tool_callback
 
+    instruction_with_skills = INSTRUCTION + load_skills_summary()
+
     return LlmAgent(
         name=name,
         model=MODEL,
-        instruction=INSTRUCTION,
-        tools=ALL_TOOLS,
+        instruction=instruction_with_skills,
+        tools=ALL_TOOLS + get_mcp_toolsets(),
         before_tool_callback=before_tool_callback,
         after_tool_callback=after_tool_callback,
     )

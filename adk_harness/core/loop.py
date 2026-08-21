@@ -24,6 +24,7 @@ from .agent import build_agent
 from .config import APP_NAME, DEFAULT_USER_ID
 from .imports import Runner, types
 from .session import build_session_service, end_session, list_session_ids, start_or_resume
+from ..extensions.commands.registry import load_commands
 
 BANNER = """\
 adk_harness — a minimal agent harness built on ADK
@@ -169,6 +170,13 @@ async def repl(persistent: bool = True, session_id: str | None = None) -> int:
     store = "persistent" if is_persistent else "in-memory (this session will not survive exit)"
     print(f"session {session.id} — {'resumed' if resumed else 'new'}, {store}\n")
 
+    dynamic_commands = load_commands()
+    if dynamic_commands:
+        print("Dynamic Commands:")
+        for cmd in dynamic_commands:
+            print(f"  {cmd:<10} (frozen prompt)")
+        print()
+
     while True:
         try:
             line = input("\033[1m› \033[0m").strip()
@@ -184,6 +192,11 @@ async def repl(persistent: bool = True, session_id: str | None = None) -> int:
             return 0
         if line == "/help":
             print(HELP)
+            if dynamic_commands:
+                print("Dynamic Commands:")
+                for cmd in dynamic_commands:
+                    print(f"  {cmd:<10} (frozen prompt)")
+                print()
             continue
         if line == "/sessions":
             ids = await list_session_ids(service)
@@ -196,6 +209,10 @@ async def repl(persistent: bool = True, session_id: str | None = None) -> int:
             session, _ = await start_or_resume(service, None)
             print(f"session {session.id} — new\n")
             continue
+            
+        if line in dynamic_commands:
+            print(f"\033[36m[Command Expanded]\033[0m {dynamic_commands[line]}")
+            line = dynamic_commands[line]
 
         try:
             await _run_turn(runner, session.id, line)

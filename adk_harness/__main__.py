@@ -5,7 +5,7 @@ Deliberately not `adk run adk_harness`. See loop.py and README.md.
 
 import sys
 
-from .loop import main
+from .core.loop import main
 
 if __name__ == "__main__":
     sys.exit(main())

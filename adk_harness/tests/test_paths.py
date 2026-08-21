@@ -1,7 +1,7 @@
 import os
 import pytest
-from adk_harness.paths import resolve, is_inside_workspace, display
-from adk_harness.config import WORKSPACE_DIR
+from adk_harness.core.paths import resolve, is_inside_workspace, display
+from adk_harness.core.config import WORKSPACE_DIR
 
 def test_resolve_relative():
     res = resolve("test.txt")

@@ -8,8 +8,8 @@ import glob
 import os
 import subprocess
 
-from ..config import WORKSPACE_DIR
-from ..paths import resolve
+from ..core.config import WORKSPACE_DIR
+from ..core.paths import resolve
 
 
 def grep_search(query: str, path: str = ".") -> str:

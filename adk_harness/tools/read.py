@@ -2,7 +2,7 @@
 
 import os
 
-from ..paths import resolve, display
+from ..core.paths import resolve, display
 
 
 def read_file(path: str) -> str:

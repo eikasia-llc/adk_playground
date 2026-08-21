@@ -9,7 +9,7 @@ import os
 
 import pytest
 
-from adk_harness.config import WORKSPACE_DIR
+from adk_harness.core.config import WORKSPACE_DIR
 from adk_harness.tools import read_file, write_file, edit_file, run_bash, grep_search, glob_search
 
 

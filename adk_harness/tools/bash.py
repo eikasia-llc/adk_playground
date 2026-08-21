@@ -12,7 +12,7 @@ is readable in one file instead of being spread across four tools.
 
 import subprocess
 
-from ..config import BASH_TIMEOUT_SECONDS, WORKSPACE_DIR
+from ..core.config import BASH_TIMEOUT_SECONDS, WORKSPACE_DIR
 
 
 def run_bash(command: str) -> str:

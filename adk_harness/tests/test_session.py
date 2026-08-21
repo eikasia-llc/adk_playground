@@ -1,6 +1,6 @@
 import pytest
-from adk_harness.session import build_session_service, start_or_resume, list_session_ids, end_session
-from adk_harness.imports import InMemorySessionService
+from adk_harness.core.session import build_session_service, start_or_resume, list_session_ids, end_session
+from adk_harness.core.imports import InMemorySessionService
 
 @pytest.mark.asyncio
 async def test_build_session_service_non_persistent():

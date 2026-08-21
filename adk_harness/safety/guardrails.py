@@ -39,8 +39,8 @@ advisory.
 
 import re
 
-from .config import MAX_TOOL_OUTPUT_CHARS, WORKSPACE_DIR
-from .paths import display, is_inside_workspace, resolve
+from ..core.config import MAX_TOOL_OUTPUT_CHARS, WORKSPACE_DIR
+from ..core.paths import display, is_inside_workspace, resolve
 
 # Which argument carries a filesystem path, per tool. Tools absent from this
 # map take no path argument and are skipped by the path check.

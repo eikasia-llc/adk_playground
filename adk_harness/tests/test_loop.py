@@ -1,5 +1,5 @@
 import pytest
-from adk_harness.loop import _print_tool_calls
+from adk_harness.core.loop import _print_tool_calls
 
 class FakeCall:
     def __init__(self, name, args):

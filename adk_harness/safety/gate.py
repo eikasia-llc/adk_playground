@@ -4,7 +4,7 @@ Intercepts mutating tool calls and pauses the loop to ask the human for
 approval. If refused, short-circuits the tool. If approved, allows it to run.
 """
 
-from .tools import MUTATING_TOOLS
+from ..tools import MUTATING_TOOLS
 
 
 def before_tool_callback(tool, args: dict, tool_context) -> dict | None:

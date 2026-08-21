@@ -2,7 +2,7 @@
 
 import os
 
-from ..paths import resolve, display
+from ..core.paths import resolve, display
 
 
 def write_file(path: str, content: str) -> str:

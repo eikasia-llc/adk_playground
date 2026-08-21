@@ -1,0 +1,1 @@
+Please scan the `receipts/` directory in the current workspace. For any image files that do not have a corresponding `.txt` file, extract the total amount and vendor name using OCR, and write the extracted information to a `.txt` file with the same basename.

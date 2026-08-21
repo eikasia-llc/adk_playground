@@ -2,7 +2,7 @@
 
 import os
 
-from ..paths import resolve, display
+from ..core.paths import resolve, display
 
 
 def edit_file(path: str, old: str, new: str) -> str:

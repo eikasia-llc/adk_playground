@@ -1,5 +1,5 @@
 import pytest
-from adk_harness.gate import before_tool_callback
+from adk_harness.safety.gate import before_tool_callback
 
 class FakeTool:
     def __init__(self, name):

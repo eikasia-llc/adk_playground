@@ -10,8 +10,8 @@ import os
 
 import pytest
 
-from adk_harness.config import MAX_TOOL_OUTPUT_CHARS, WORKSPACE_DIR
-from adk_harness.guardrails import after_tool_callback, before_tool_callback
+from adk_harness.core.config import MAX_TOOL_OUTPUT_CHARS, WORKSPACE_DIR
+from adk_harness.safety.guardrails import after_tool_callback, before_tool_callback
 
 
 class FakeTool:
