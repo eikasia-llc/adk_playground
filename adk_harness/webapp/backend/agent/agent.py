@@ -6,8 +6,7 @@ import json
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")))
 
 from adk_harness.core.agent import INSTRUCTION as HARNESS_INSTRUCTION
-from adk_harness.safety.guardrails import before_tool_callback as harness_guardrail
-from adk_harness.safety.guardrails import after_tool_callback as harness_truncate
+from adk_harness.core.agent import combined_before_tool_callback, combined_after_tool_callback
 from adk_harness.tools import ALL_TOOLS
 from adk_harness.extensions.mcp.loader import get_mcp_toolsets
 from adk_harness.extensions.skills.loader import load_skills_summary, get_skill_tools
@@ -17,10 +16,10 @@ from google.genai import types
 session_queues = {}
 
 def web_before_tool_callback(tool, args, tool_context):
-    # 1. Harness Sandbox Guardrail
-    refusal = harness_guardrail(tool, args, tool_context)
-    if refusal is not None:
-        return refusal
+    # 1. Harness Core Guardrails + Deduplication Cache
+    result = combined_before_tool_callback(tool, args, tool_context)
+    if result is not None:
+        return result
 
     # 2. Stream to Frontend UI
     session_id = getattr(tool_context.session, "id", None) if tool_context and getattr(tool_context, "session", None) else None
@@ -39,9 +38,8 @@ def web_before_tool_callback(tool, args, tool_context):
     return None
 
 def web_after_tool_callback(tool, args, tool_context, tool_response):
-    # 1. Harness Truncation Guardrail
-    truncated = harness_truncate(tool, args, tool_context, tool_response)
-    final_response = truncated if truncated else tool_response
+    # 1. Harness Truncation Guardrail + Deduplication Cache
+    final_response = combined_after_tool_callback(tool, args, tool_response, tool_context)
 
     # 2. Stream to Frontend UI
     session_id = getattr(tool_context.session, "id", None) if tool_context and getattr(tool_context, "session", None) else None
@@ -84,4 +82,11 @@ root_agent = LlmAgent(
     tools=ALL_TOOLS + get_mcp_toolsets() + get_skill_tools(),
     before_tool_callback=web_before_tool_callback,
     after_tool_callback=web_after_tool_callback,
+    config=types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(thinking_budget=0),
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(
+            disable=False,
+            maximum_remote_calls=3,
+        ),
+    ),
 )

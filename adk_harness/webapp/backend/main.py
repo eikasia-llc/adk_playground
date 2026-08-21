@@ -43,6 +43,7 @@ load_dotenv()
 # Lazy agent import — ADK requires GEMINI_API_KEY to be set before import
 # ---------------------------------------------------------------------------
 from agent import root_agent
+from adk_harness.core.agent import reset_tool_call_cache
 
 # ---------------------------------------------------------------------------
 # App setup
@@ -143,6 +144,8 @@ async def chat(body: ChatRequest):
 
     session_id = body.session_id or str(uuid.uuid4())
 
+    reset_tool_call_cache()
+
     with log_latency("ensure_session"):
         await _ensure_session(session_id)
 
@@ -192,6 +195,8 @@ async def stream(
         raise HTTPException(status_code=400, detail="message must not be empty")
 
     session_id = session_id or str(uuid.uuid4())
+
+    reset_tool_call_cache()
 
     with log_latency("ensure_session"):
         await _ensure_session(session_id)

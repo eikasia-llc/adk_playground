@@ -8,13 +8,11 @@ from ..core.paths import resolve, display
 def edit_file(path: str, old: str, new: str) -> str:
     """Replace an exact string in a workspace file with a new one.
 
-    Read the file first. `old` must match the file's text EXACTLY — including
-    indentation and whitespace, and WITHOUT the line-number prefixes that
-    read_file adds for display.
-
-    `old` must appear exactly once. If it appears several times the edit is
-    refused rather than guessed at: include more surrounding context to make
-    the match unique. To create a new file, use write_file.
+    `old` must match the file's text EXACTLY, including indentation and 
+    whitespace, but WITHOUT the line-number prefixes from read_file.
+    
+    `old` must appear exactly once. If it appears multiple times, include 
+    more surrounding context to make the match unique.
 
     Args:
         path: Path to the file, relative to the workspace root.

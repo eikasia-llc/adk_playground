@@ -11,6 +11,7 @@ callbacks *on the agent*. Keeping construction in a function means the loop
 can build an agent with them, and a test can build one without.
 """
 
+import contextvars
 from ..safety import gate
 from ..safety import guardrails
 from ..extensions.skills.loader import load_skills_summary
@@ -24,6 +25,12 @@ from ..tools import ALL_TOOLS
 # want to observe raw tool behaviour). Defaulting to None directly would make
 # the unsafe configuration the one you get by forgetting.
 _DEFAULT = object()
+
+# Per-request tool call cache to eliminate redundant LLM speculatively repeated tool calls.
+tool_call_cache: contextvars.ContextVar[dict] = contextvars.ContextVar("tool_call_cache", default={})
+
+def reset_tool_call_cache() -> None:
+    tool_call_cache.set({})
 
 INSTRUCTION = """You are a coding agent working inside a sandboxed workspace \
 directory. You have six tools: read_file, write_file, edit_file, run_bash, \
@@ -50,8 +57,33 @@ def combined_before_tool_callback(tool, args: dict, tool_context) -> dict | None
     if refusal is not None:
         return refusal
         
+    # Check deduplication cache
+    cache = tool_call_cache.get()
+    
+    def freeze(v):
+        if isinstance(v, dict): return tuple(sorted((k, freeze(x)) for k, x in v.items()))
+        if isinstance(v, list): return tuple(freeze(x) for x in v)
+        return v
+        
+    frozen_args = freeze(args)
+    key = (tool.name, frozen_args)
+    if key in cache:
+        print(f"  \\033[36m[Cache Hit]\\033[0m {tool.name}(...)", flush=True)
+        return cache[key]
+        
+    tool_context.frozen_args = frozen_args
+        
     # HITL gate runs second (pause and ask)
     return gate.before_tool_callback(tool, args, tool_context)
+
+def combined_after_tool_callback(tool, args: dict, result: dict | str, tool_context) -> dict | str:
+    final_result = guardrails.after_tool_callback(tool, args, result, tool_context)
+    cache = tool_call_cache.get()
+    frozen_args = getattr(tool_context, "frozen_args", None)
+    if frozen_args is not None:
+        # Cache the result to serve on duplicate calls
+        cache[(tool.name, frozen_args)] = {"result": final_result}
+    return final_result
 
 
 def build_agent(
@@ -73,11 +105,12 @@ def build_agent(
     if before_tool_callback is _DEFAULT:
         before_tool_callback = combined_before_tool_callback
     if after_tool_callback is _DEFAULT:
-        after_tool_callback = guardrails.after_tool_callback
+        after_tool_callback = combined_after_tool_callback
 
     instruction_with_skills = INSTRUCTION + load_skills_summary()
 
     from ..extensions.skills.loader import get_skill_tools
+    from .imports import types
     return LlmAgent(
         name=name,
         model=MODEL,
@@ -85,4 +118,11 @@ def build_agent(
         tools=ALL_TOOLS + get_mcp_toolsets() + get_skill_tools(),
         before_tool_callback=before_tool_callback,
         after_tool_callback=after_tool_callback,
+        config=types.GenerateContentConfig(
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                disable=False,
+                maximum_remote_calls=3,
+            ),
+        ),
     )

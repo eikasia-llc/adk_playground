@@ -18,13 +18,9 @@ from ..core.config import BASH_TIMEOUT_SECONDS, WORKSPACE_DIR
 def run_bash(command: str) -> str:
     """Run a shell command inside the workspace and return its output.
 
-    The working directory is always the workspace root; you cannot cd out of
-    it and have the change persist, since each call is a fresh shell. Use this
-    for listing files (`ls`), searching (`grep -rn ...`), and running programs.
-
+    The working directory is always the workspace root; cd does not persist.
     Standard output and standard error come back combined. Long output is
-    truncated. Commands that would damage the system or reach outside the
-    workspace are refused before they run.
+    truncated.
 
     Args:
         command: The shell command to execute.

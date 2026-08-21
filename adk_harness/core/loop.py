@@ -20,7 +20,7 @@ import asyncio
 import os
 import sys
 
-from .agent import build_agent
+from .agent import build_agent, reset_tool_call_cache
 from .config import APP_NAME, DEFAULT_USER_ID
 from .imports import Runner, types
 from .session import build_session_service, end_session, list_session_ids, start_or_resume
@@ -88,6 +88,8 @@ async def _run_turn(
         content = types.Content(role="user", parts=[types.Part(text=message + ephemeral_injection)])
     else:
         content = None
+
+    reset_tool_call_cache()
 
     final_text: list[str] = []
     
