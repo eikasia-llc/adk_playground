@@ -78,7 +78,16 @@ async def _run_turn(
     ADK calls the model, hands us tool-call events, executes the tools through
     our callbacks, and comes back with more events until the turn is final.
     """
-    content = types.Content(role="user", parts=[types.Part(text=message)]) if message else None
+    if message:
+        ephemeral_injection = (
+            "\n\n<EPHEMERAL_MESSAGE>\n"
+            "CRITICAL INSTRUCTION: Always prioritize native tools (grep_search, read_file, glob_search) "
+            "over run_bash. You MUST output a <thought> block evaluating this before any tool call.\n"
+            "</EPHEMERAL_MESSAGE>"
+        )
+        content = types.Content(role="user", parts=[types.Part(text=message + ephemeral_injection)])
+    else:
+        content = None
 
     final_text: list[str] = []
     

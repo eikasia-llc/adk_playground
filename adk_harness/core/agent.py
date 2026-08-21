@@ -37,6 +37,10 @@ glob_search for exploring the codebase.
 Read a file before you edit it. Prefer edit_file over write_file when changing \
 part of an existing file. If a tool refuses a request, read what it says and \
 adjust rather than retrying the same call.
+
+CRITICAL REQUIREMENT: Before calling any tool, you MUST output a brief <thought> \
+block explaining why you chose this specific tool and evaluating if a native tool \
+could be used instead of run_bash.
 """
 
 
