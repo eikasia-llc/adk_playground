@@ -7,7 +7,7 @@ injection: excluded
 volatility: evolving
 scope: general
 execution_model: sequential
-last_checked: '2026-08-20'
+last_checked: '2026-08-21'
 ---
 
 # Housekeeping Workflow
@@ -163,14 +163,14 @@ Update the `last_checked` field in this file's metadata header.
 
 ## Latest Report
 
-**Date:** 2026-08-20
-**Trigger:** Converted HOUSEKEEPING.md to proper workflow based on template.
+**Date:** 2026-08-21
+**Trigger:** Updated ADK Harness architecture to Five-Pillar layout; added `read_skill` abstraction and tests.
 
 ```yaml
 format:        n/a
 lint:          n/a
 types:         n/a
-tests:         { passed: 81, failed: 0, skipped: 0 }
+tests:         { passed: 86, failed: 0, skipped: 0 }
 integration:   n/a
 dependencies:  n/a
 dead_code:     n/a
