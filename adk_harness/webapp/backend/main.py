@@ -269,7 +269,7 @@ def health():
 # POST /clear
 # ---------------------------------------------------------------------------
 import shutil
-from adk_harness.config import WORKSPACE_DIR
+from adk_harness.core.config import WORKSPACE_DIR
 
 @app.post("/clear")
 def clear():
