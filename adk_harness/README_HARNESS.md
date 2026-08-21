@@ -6,7 +6,7 @@ This architecture enables deep interception of the execution flow and is structu
 
 ## Architecture
 
-The harness is modularized into four main pillars to separate the generic loop engine from domain-specific capabilities and safety mechanics.
+The harness is modularized into five main pillars to separate the generic loop engine from domain-specific capabilities, safety mechanics, and execution environments.
 
 ### 1. Core (`core/`)
 The generic orchestration engine. These files rarely change across different domains.
@@ -24,14 +24,18 @@ Guardrails, Human-In-The-Loop gates, and validation logic.
 
 ### 3. Extensions (`extensions/`)
 The domain extensibility layer, representing the standard ways to augment a minimalist harness.
-- **`skills/`**: Progressive disclosure. A folder per domain containing a `SKILL.md` (instructions) and bundled deterministic scripts.
+- **`skills/`**: Progressive disclosure. A folder per domain containing a `SKILL.md` (instructions) and bundled deterministic scripts. Crucially, the harness exposes a dedicated `read_skill(skill_name)` native tool to safely fetch these from outside the workspace sandbox without LLM path hallucinations.
+- **`mcp/`**: Pre-built configurations to expose structured tools directly to the LLM. In addition to standard remote `McpToolset` integration, we natively embed `FastMCP` local servers (e.g. `local_server.py`) using `StdioServerParameters` to bring Python tool validation in-process.
 - **`commands/`**: Frozen slash commands and prompt templates for recurring workflows.
 - **`subagents/`**: Factories for spawning fresh contexts/sub-agents to process isolated tasks without polluting the main context window.
-- **`mcp/`**: Pre-built configurations to expose structured tools directly to the LLM via `McpToolset`.
 
 ### 4. Tools (`tools/`)
 The fixed native capabilities the harness ships with:
-- `read_file`, `write_file`, `edit_file`, `run_bash`, `grep_search`, and `glob_search`.
+- `read_file`, `write_file`, `edit_file`, `run_bash`, `grep_search`, and `glob_search`. By promoting `grep` and `glob` to core tools, the harness guarantees structured parsing for codebase navigation instead of relying on bash string streams.
+
+### 5. Workspace (`workspace/`)
+The strictly sandboxed execution environment.
+- The `WORKSPACE_DIR` acts as the definitive hard boundary for all tool operations. The guardrails enforce that the agent cannot read, write, or execute commands in paths that resolve above this root, ensuring safe, contained agentic behavior.
 
 ### WebApp UI
 - **`webapp/`**: A Next.js application integrated to drive the harness loop graphically (instead of the terminal REPL), including a `/clear` API endpoint to cleanly reset the workspace sandbox between sessions.
