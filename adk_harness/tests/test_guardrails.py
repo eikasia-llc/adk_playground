@@ -88,6 +88,22 @@ def test_absolute_path_inside_the_workspace_is_allowed():
     assert call("read_file", path=os.path.join(WORKSPACE_DIR, "ok.txt")) is None
 
 
+# --- exceptions to the path boundary ------------------------------------------
+
+
+def test_read_file_can_access_skills_directory():
+    from adk_harness.core.config import PACKAGE_DIR
+    skill_path = os.path.join(PACKAGE_DIR, "extensions", "skills", "test_skill", "SKILL.md")
+    assert call("read_file", path=skill_path) is None
+
+
+@pytest.mark.parametrize("tool", ["write_file", "edit_file", "grep_search", "glob_search"])
+def test_other_tools_cannot_access_skills_directory(tool):
+    from adk_harness.core.config import PACKAGE_DIR
+    skill_path = os.path.join(PACKAGE_DIR, "extensions", "skills", "test_skill", "SKILL.md")
+    assert refused(call(tool, path=skill_path))
+
+
 # --- the bash denylist --------------------------------------------------------
 
 

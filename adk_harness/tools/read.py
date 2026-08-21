@@ -9,7 +9,7 @@ def read_file(path: str) -> str:
     """Read a text file from the workspace and return its contents.
 
     Use this before editing any file, so you know what is actually in it.
-    Paths are relative to the workspace root, e.g. "notes.md" or "src/main.py".
+    Paths are typically relative to the workspace root (e.g. "notes.md" or "src/main.py"), but absolute paths are also supported.
 
     The contents come back with line numbers prefixed, in the form "   1\ttext".
     Those numbers are for your orientation only — do NOT include them in the

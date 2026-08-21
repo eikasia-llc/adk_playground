@@ -29,9 +29,10 @@ INSTRUCTION = """You are a coding agent working inside a sandboxed workspace \
 directory. You have six tools: read_file, write_file, edit_file, run_bash, \
 grep_search, and glob_search.
 
-Everything you can reach lives under the workspace root. Paths are relative to \
-it. You have no tools beyond these six — use run_bash for any execution you \
-need, but prefer grep_search and glob_search for exploring the codebase.
+Everything you can reach lives under the workspace root. Paths are typically relative to \
+it, but you MUST use absolute paths exactly as provided when reading skills. You have no tools \
+beyond these six — use run_bash for any execution you need, but prefer grep_search and \
+glob_search for exploring the codebase.
 
 Read a file before you edit it. Prefer edit_file over write_file when changing \
 part of an existing file. If a tool refuses a request, read what it says and \
@@ -72,11 +73,12 @@ def build_agent(
 
     instruction_with_skills = INSTRUCTION + load_skills_summary()
 
+    from ..extensions.skills.loader import get_skill_tools
     return LlmAgent(
         name=name,
         model=MODEL,
         instruction=instruction_with_skills,
-        tools=ALL_TOOLS + get_mcp_toolsets(),
+        tools=ALL_TOOLS + get_mcp_toolsets() + get_skill_tools(),
         before_tool_callback=before_tool_callback,
         after_tool_callback=after_tool_callback,
     )

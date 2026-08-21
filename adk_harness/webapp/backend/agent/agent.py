@@ -10,7 +10,7 @@ from adk_harness.safety.guardrails import before_tool_callback as harness_guardr
 from adk_harness.safety.guardrails import after_tool_callback as harness_truncate
 from adk_harness.tools import ALL_TOOLS
 from adk_harness.extensions.mcp.loader import get_mcp_toolsets
-from adk_harness.extensions.skills.loader import load_skills_summary
+from adk_harness.extensions.skills.loader import load_skills_summary, get_skill_tools
 from google.adk.agents.llm_agent import LlmAgent
 from google.genai import types
 
@@ -81,7 +81,7 @@ root_agent = LlmAgent(
     name="web_harness_agent",
     description="A powerful coding agent equipped with filesystem tools.",
     instruction=WEB_INSTRUCTION,
-    tools=ALL_TOOLS + get_mcp_toolsets(),
+    tools=ALL_TOOLS + get_mcp_toolsets() + get_skill_tools(),
     before_tool_callback=web_before_tool_callback,
     after_tool_callback=web_after_tool_callback,
 )

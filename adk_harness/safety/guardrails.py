@@ -103,6 +103,17 @@ def check_path_argument(tool_name: str, args: dict) -> dict | None:
     if is_inside_workspace(resolved):
         return None
 
+    # Exception for read-only access to extensions/skills
+    if tool_name == "read_file":
+        import os
+        from ..core.config import PACKAGE_DIR
+        skills_dir = os.path.join(PACKAGE_DIR, "extensions", "skills")
+        try:
+            if os.path.commonpath([resolved, skills_dir]) == skills_dir:
+                return None
+        except ValueError:
+            pass
+
     return _refuse(
         f"'{raw}' resolves to {resolved}, which is outside the workspace "
         f"({WORKSPACE_DIR}). Only paths inside the workspace may be accessed."

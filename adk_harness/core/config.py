@@ -26,7 +26,7 @@ except ImportError:  # pragma: no cover - dotenv is an ADK dependency
     pass
 
 # adk_harness/
-PACKAGE_DIR = os.path.realpath(os.path.dirname(__file__))
+PACKAGE_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), ".."))
 
 # adk_harness/workspace/ — the only directory the agent may read or write.
 # Override with HARNESS_WORKSPACE to point the agent at a different tree.

@@ -4,6 +4,11 @@ from pathlib import Path
 
 SKILLS_DIR = Path(__file__).parent
 
+def get_skill_tools() -> list:
+    """Return the list of tools associated with skills."""
+    from .tool import read_skill
+    return [read_skill]
+
 def load_skills_summary() -> str:
     """Scan the skills directory and build a summary of available skills.
     
@@ -44,7 +49,7 @@ def load_skills_summary() -> str:
             if name_match and desc_match:
                 name = name_match.group(1).strip()
                 desc = desc_match.group(1).strip()
-                skills.append(f"- **{name}** (`{skill_dir.name}/SKILL.md`): {desc}")
+                skills.append(f"- **{name}** (Directory: `{skill_dir.name}`): {desc}")
                 
         except Exception as e:
             print(f"Warning: Failed to load skill {skill_dir.name}: {e}")
@@ -52,6 +57,6 @@ def load_skills_summary() -> str:
     if not skills:
         return ""
         
-    summary = "\nAvailable Skills (use read_file on the path to load instructions):\n"
+    summary = "\nAvailable Skills (use the `read_skill` tool with the Directory name to load instructions):\n"
     summary += "\n".join(skills)
     return summary + "\n"
