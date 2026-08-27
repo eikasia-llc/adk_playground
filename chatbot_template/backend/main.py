@@ -51,9 +51,27 @@ APP_NAME = "chatbot_template"
 session_service = InMemorySessionService()
 
 
+async def _warmup_backend() -> None:
+    """Preheat session service, runner, and MCP toolset so first turn is instant."""
+    warmup_session = "warmup_probe"
+    try:
+        await _ensure_session(warmup_session)
+        _make_runner(warmup_session)
+        if hasattr(root_agent, "tools") and root_agent.tools:
+            for tool in root_agent.tools:
+                if hasattr(tool, "get_tools"):
+                    res = tool.get_tools()
+                    if asyncio.iscoroutine(res):
+                        await res
+        print("[WARMUP] Backend and MCP toolset pre-warmed successfully.", flush=True)
+    except Exception as e:
+        print(f"[WARMUP] Note during warmup: {e}", flush=True)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Backend ready. root_agent:", root_agent.name)
+    asyncio.create_task(_warmup_backend())
     yield
 
 
@@ -258,8 +276,15 @@ async def stream(
 
 
 # ---------------------------------------------------------------------------
-# GET /health
+# GET /warmup and GET /health
 # ---------------------------------------------------------------------------
+
+@app.get("/warmup")
+async def warmup():
+    with log_latency("warmup"):
+        await _warmup_backend()
+    return {"status": "warm", "agent": root_agent.name}
+
 
 @app.get("/health")
 def health():

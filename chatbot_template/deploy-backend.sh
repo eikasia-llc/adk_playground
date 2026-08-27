@@ -87,6 +87,7 @@ gcloud run deploy "$SERVICE" \
   --max-instances=2 \
   --memory=512Mi \
   --cpu=1 \
+  --cpu-boost \
   --concurrency=80 \
   --labels="app=chatbot-template-app,managed-by=deploy-sh"
 

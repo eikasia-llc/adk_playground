@@ -44,7 +44,7 @@ export default function A2UIRenderer({ payload, onAction }: A2UIRendererProps) {
           style={{ alignSelf: "flex-start", marginTop: "0.5rem" }} 
           onClick={handleSubmitAll}
         >
-          Submit All
+          Submit All ✦
         </button>
       )}
     </div>
@@ -137,7 +137,7 @@ function ComponentNode({
         <div className="a2ui-sealed-box">
           <span className="sealed-box-icon">🔒</span>
           <span className="sealed-box-label">
-            {component.label ?? "Rocky's choice is sealed!"}
+            {component.label ?? "Chatty's choice is sealed with fairy wards! 🔒✨"}
           </span>
         </div>
       );
@@ -227,24 +227,24 @@ function ComponentNode({
 
     case "chart": {
       const { chart_type, title, x_axis_label, y_axis_label, data } = component;
-      const colors = ["#0070f3", "#00b4d8", "#90e0ef", "#caf0f8"];
+      const colors = ["#8b5cf6", "#06b6d4", "#fbbf24", "#f43f5e"];
       return (
         <div className="a2ui-chart" style={{ width: "100%", height: 260 }}>
           {title && <h3 className="chart-title" style={{ textAlign: "center", marginBottom: "10px" }}>{title}</h3>}
           <ResponsiveContainer width="100%" height={220}>
             {chart_type === "bar" ? (
               <BarChart data={data}>
-                <XAxis dataKey="label" label={{ value: x_axis_label, position: 'insideBottom', offset: -5 }} />
-                <YAxis label={{ value: y_axis_label, angle: -90, position: 'insideLeft' }} />
+                <XAxis dataKey="label" stroke="#94a3b8" label={{ value: x_axis_label, position: 'insideBottom', offset: -5, fill: '#94a3b8' }} />
+                <YAxis stroke="#94a3b8" label={{ value: y_axis_label, angle: -90, position: 'insideLeft', fill: '#94a3b8' }} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#0070f3" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
               </BarChart>
             ) : chart_type === "line" ? (
               <LineChart data={data}>
-                <XAxis dataKey="label" label={{ value: x_axis_label, position: 'insideBottom', offset: -5 }} />
-                <YAxis label={{ value: y_axis_label, angle: -90, position: 'insideLeft' }} />
+                <XAxis dataKey="label" stroke="#94a3b8" label={{ value: x_axis_label, position: 'insideBottom', offset: -5, fill: '#94a3b8' }} />
+                <YAxis stroke="#94a3b8" label={{ value: y_axis_label, angle: -90, position: 'insideLeft', fill: '#94a3b8' }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#0070f3" strokeWidth={2} dot={true} />
+                <Line type="monotone" dataKey="value" stroke="#fbbf24" strokeWidth={3} dot={{ fill: '#fbbf24', r: 4 }} />
               </LineChart>
             ) : (
               <PieChart>

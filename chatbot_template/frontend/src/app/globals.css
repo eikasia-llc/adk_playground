@@ -1,33 +1,60 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Color Palette */
-  --bg-app: #f0f4f8;
-  --bg-chat: #ffffff;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #e0e7ff;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
+  /* Enchanted Color Palette */
+  --bg-app: #090714;
+  --bg-chat: rgba(18, 14, 38, 0.85);
+  --bg-chat-surface: rgba(28, 22, 58, 0.7);
+  --bg-input: rgba(13, 10, 28, 0.8);
   
-  --user-msg-bg: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --primary-light: rgba(139, 92, 246, 0.18);
+  --primary-glow: rgba(139, 92, 246, 0.45);
+  
+  --gold: #fbbf24;
+  --gold-glow: rgba(251, 191, 36, 0.4);
+  --gold-light: rgba(251, 191, 36, 0.15);
+  
+  --cyan: #06b6d4;
+  --cyan-glow: rgba(6, 182, 212, 0.35);
+  
+  --rose: #f43f5e;
+  --emerald: #10b981;
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-gold: #fde68a;
+  
+  --border: rgba(168, 85, 247, 0.22);
+  --border-gold: rgba(251, 191, 36, 0.35);
+  --border-subtle: rgba(148, 163, 184, 0.12);
+  
+  /* Message bubbles */
+  --user-msg-bg: linear-gradient(135deg, #6d28d9 0%, #4f46e5 100%);
   --user-msg-text: #ffffff;
-  --agent-msg-bg: #f8fafc;
-  --agent-msg-text: #334155;
-  --agent-msg-border: #f1f5f9;
+  --user-msg-border: rgba(196, 181, 253, 0.35);
+  
+  --agent-msg-bg: rgba(26, 20, 52, 0.75);
+  --agent-msg-text: #f1f5f9;
+  --agent-msg-border: rgba(168, 85, 247, 0.25);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-glow: 0 0 15px rgba(79, 70, 229, 0.3);
+  /* Shadows & Glows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.5), 0 0 15px rgba(124, 58, 237, 0.15);
+  --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 35px rgba(139, 92, 246, 0.2);
+  --shadow-gold: 0 0 20px rgba(251, 191, 36, 0.3);
+  --shadow-cyan: 0 0 20px rgba(6, 182, 212, 0.25);
   
   /* Radii */
   --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  
+  /* Fonts */
+  --font-magic: 'Cinzel', serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 *, *::before, *::after {
@@ -37,157 +64,560 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-app);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(18, 14, 38, 0.95) 0%, #090714 100%);
+  background-attachment: fixed;
   color: var(--text-main);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;
 }
 
-/* ---- Chat window ---- */
+/* Custom Magic Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(13, 10, 28, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.6);
+}
+
+/* ---- Chat Container Window ---- */
 .chat-window {
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   background: var(--bg-chat);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
+  position: relative;
 }
 
+/* ---- Enchanted Header ---- */
+.chat-header {
+  padding: 1rem 1.5rem;
+  background: rgba(18, 14, 38, 0.9);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+.chat-header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.fairy-avatar-aura {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(139, 92, 246, 0.35));
+  border: 1.5px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: 0 0 15px var(--gold-glow);
+  animation: fairyAuraPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes fairyAuraPulse {
+  0% { transform: scale(1); box-shadow: 0 0 10px var(--gold-glow); }
+  100% { transform: scale(1.06); box-shadow: 0 0 22px var(--gold-glow), 0 0 35px var(--primary-glow); }
+}
+
+.chat-header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header-name {
+  font-family: var(--font-magic);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+}
+
+.chat-header-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ritual-reset-btn {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.ritual-reset-btn:hover {
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 0 12px var(--primary-glow);
+  transform: translateY(-1px);
+}
+
+.stream-toggle-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.stream-toggle-label:hover {
+  color: var(--text-main);
+}
+
+.stream-toggle-label input[type="checkbox"] {
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* ---- Chat Messages Flow ---- */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem 1.5rem;
+  padding: 1.75rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
+  position: relative;
 }
 
-/* ---- Message bubbles ---- */
-.message {
-  max-width: 80%;
-  padding: 0.8rem 1.2rem;
-  border-radius: var(--radius-lg);
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 0.95rem;
-  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--shadow-sm);
+/* ---- Welcome Hero / Spell Curriculum Greeting ---- */
+.welcome-hero {
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.15) 0%, rgba(26, 20, 52, 0.4) 70%, transparent 100%);
+  border: 1px dashed rgba(168, 85, 247, 0.3);
+  border-radius: var(--radius-xl);
+  animation: fadeInSlow 0.6s ease-out;
 }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(10px); }
+@keyframes fadeInSlow {
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.message.user {
+.welcome-fairy-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.6));
+  animation: floatFairy 3.5s ease-in-out infinite;
+}
+
+@keyframes floatFairy {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+
+.welcome-title {
+  font-family: var(--font-magic);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #fef08a 0%, #fbbf24 60%, #e879f9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome-description {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 540px;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.quick-spells-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 580px;
+}
+
+.quick-spells-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.quick-spells-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.65rem;
+}
+
+.quick-spell-chip {
+  padding: 0.75rem 1rem;
+  background: rgba(30, 24, 60, 0.6);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-spell-chip:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.18), 0 0 10px rgba(139, 92, 246, 0.2);
+}
+
+.quick-spell-chip-icon {
+  font-size: 1.25rem;
+}
+
+/* ---- Message Rows & Bubbles ---- */
+.message-row {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 85%;
+  animation: messageSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes messageSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message-row.user {
   align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-row.assistant {
+  align-self: flex-start;
+}
+
+.message-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.message-avatar.user-avatar {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border: 1px solid rgba(196, 181, 253, 0.4);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.message-avatar.fairy-avatar {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(139, 92, 246, 0.4));
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
+.message-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.message {
+  padding: 0.95rem 1.3rem;
+  border-radius: var(--radius-lg);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.message.user {
   background: var(--user-msg-bg);
   color: var(--user-msg-text);
-  border-bottom-right-radius: 0.25rem;
+  border: 1px solid var(--user-msg-border);
+  border-top-right-radius: 0.25rem;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
 }
 
 .message.assistant {
-  align-self: flex-start;
   background: var(--agent-msg-bg);
   color: var(--agent-msg-text);
   border: 1px solid var(--agent-msg-border);
-  border-bottom-left-radius: 0.25rem;
+  border-top-left-radius: 0.25rem;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(12px);
 }
 
-/* ---- Input bar ---- */
+/* Arcane Tool Pills */
+.tool-runes-container {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tool-rune-badge {
+  font-size: 0.76rem;
+  font-family: monospace;
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+}
+
+.tool-output-scroll {
+  font-size: 0.72rem;
+  background: rgba(10, 8, 20, 0.75);
+  color: #a5b4fc;
+  padding: 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  max-height: 140px;
+}
+
+/* Submissions from A2UI */
+.a2ui-submit-tag {
+  font-size: 0.72rem;
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--text-gold);
+  border: 1px solid var(--border-gold);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  width: fit-content;
+  align-self: flex-end;
+}
+
+/* ---- Enchanted Loading / Casting Indicator ---- */
+.casting-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.4rem;
+  background: rgba(26, 20, 52, 0.75);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  border-top-left-radius: 0.25rem;
+  max-width: 80%;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-md);
+  animation: castingGlow 2s infinite alternate;
+}
+
+@keyframes castingGlow {
+  0% { box-shadow: 0 0 10px rgba(139, 92, 246, 0.2); }
+  100% { box-shadow: 0 0 25px rgba(251, 191, 36, 0.3), 0 0 15px rgba(139, 92, 246, 0.4); }
+}
+
+.casting-orb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fde047 10%, #8b5cf6 80%);
+  box-shadow: 0 0 15px var(--gold-glow);
+  animation: orbSpin 1.4s ease-in-out infinite;
+}
+
+@keyframes orbSpin {
+  0% { transform: rotate(0deg) scale(0.9); filter: brightness(1); }
+  50% { transform: rotate(180deg) scale(1.15); filter: brightness(1.4); }
+  100% { transform: rotate(360deg) scale(0.9); filter: brightness(1); }
+}
+
+.casting-text {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ---- Input Bar ---- */
 .chat-input-bar {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.85rem;
   padding: 1.25rem 1.5rem;
-  background: var(--bg-chat);
+  background: rgba(18, 14, 38, 0.95);
   border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+}
+
+.chat-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .chat-input-bar input {
-  flex: 1;
-  padding: 0.8rem 1.25rem;
+  width: 100%;
+  padding: 0.85rem 1.4rem;
+  background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 999px;
-  font-size: 1rem;
+  font-size: 0.98rem;
+  font-family: var(--font-body);
+  color: var(--text-main);
   outline: none;
-  background: #f8fafc;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.chat-input-bar input::placeholder {
+  color: rgba(148, 163, 184, 0.6);
 }
 
 .chat-input-bar input:focus {
   border-color: var(--primary);
-  background: #fff;
-  box-shadow: 0 0 0 3px var(--primary-light);
+  background: rgba(22, 17, 45, 0.95);
+  box-shadow: 0 0 0 3px var(--primary-light), 0 0 20px rgba(139, 92, 246, 0.3);
 }
 
-.chat-input-bar button {
+.cast-spell-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.8rem 1.5rem;
-  background: var(--primary);
+  gap: 0.45rem;
+  padding: 0.85rem 1.6rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
   color: #fff;
-  border: none;
+  border: 1px solid rgba(196, 181, 253, 0.3);
   border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-body);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
 }
 
-.chat-input-bar button:hover:not(:disabled) {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+.cast-spell-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(139, 92, 246, 0.5), 0 0 15px var(--gold-glow);
 }
 
-.chat-input-bar button:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow: var(--shadow-sm);
+.cast-spell-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
-.chat-input-bar button:disabled {
-  opacity: 0.6;
+.cast-spell-btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
   box-shadow: none;
+  filter: grayscale(0.5);
 }
 
-/* ---- A2UI components ---- */
+/* ==========================================================================
+   A2UI SPELLBOOK COMPONENTS (The Magic Spells)
+   ========================================================================== */
 .a2ui-container {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
   margin-top: 0.5rem;
   width: 100%;
 }
 
+/* ---- A2UI Card (Magical Tablet) ---- */
 .a2ui-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-sm);
+  padding: 1.35rem;
+  background: rgba(26, 20, 52, 0.6);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
 }
 
 .a2ui-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: #cbd5e1;
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: var(--shadow-lg);
 }
 
 .a2ui-card h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  color: var(--text-main);
+  font-family: var(--font-magic);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: var(--text-gold);
+  letter-spacing: 0.03em;
 }
 
 .a2ui-card .subtitle {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
@@ -195,168 +625,194 @@ body {
 .a2ui-card .card-body {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
+/* ---- A2UI Button (Runic Action Button) ---- */
 .a2ui-button {
   align-self: flex-start;
-  padding: 0.6rem 1.2rem;
-  background: var(--primary-light);
-  color: var(--primary);
-  border: 1px solid transparent;
+  padding: 0.65rem 1.35rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(79, 70, 229, 0.25));
+  color: #e0e7ff;
+  border: 1px solid rgba(168, 85, 247, 0.4);
   border-radius: 999px;
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-family: var(--font-body);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
 }
 
 .a2ui-button:hover {
-  background: var(--primary);
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: #fff;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
 }
 
 .a2ui-button:active {
   transform: translateY(0);
 }
 
+/* ---- A2UI List (Incantation Points) ---- */
 .a2ui-list {
-  padding-left: 1.5rem;
+  padding-left: 1rem;
   list-style-type: none;
 }
 
 .a2ui-list li {
   position: relative;
-  margin-bottom: 0.4rem;
-  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1.25rem;
   color: var(--text-main);
   line-height: 1.5;
+  font-size: 0.94rem;
 }
 
 .a2ui-list li::before {
-  content: "•";
+  content: "✦";
   position: absolute;
   left: 0;
-  color: var(--primary);
-  font-weight: bold;
+  color: var(--gold);
+  font-size: 0.85rem;
 }
 
-/* ---- RPS selector ---- */
+/* ---- RPS SELECTOR ("Cast Your Shape") ---- */
 .a2ui-rps-selector {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  background: #f8fafc;
-  padding: 1rem;
+  gap: 1rem;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.15) 0%, rgba(20, 15, 42, 0.8) 100%);
+  padding: 1.25rem;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-gold);
+  box-shadow: 0 0 25px rgba(251, 191, 36, 0.12);
 }
 
 .rps-selector-prompt {
-  font-size: 1rem;
-  color: var(--text-main);
-  font-weight: 500;
+  font-family: var(--font-magic);
+  font-size: 1.05rem;
+  color: var(--text-gold);
+  font-weight: 700;
   text-align: center;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
 }
 
 .rps-selector-grid {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.85rem;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .rps-btn {
-  padding: 0.75rem 1.25rem;
-  border: 2px solid var(--primary-light);
+  padding: 0.85rem 1.4rem;
+  border: 1.5px solid rgba(168, 85, 247, 0.4);
   border-radius: var(--radius-lg);
-  background: #fff;
-  color: var(--primary);
-  font-size: 1.1rem;
-  font-weight: 600;
+  background: rgba(30, 22, 60, 0.8);
+  color: #f1f5f9;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: var(--font-body);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .rps-btn:hover {
-  background: var(--primary);
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: #fff;
-  border-color: var(--primary);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: var(--shadow-md);
+  border-color: var(--gold);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.5), 0 0 18px var(--gold-glow);
 }
 
 .rps-btn:active {
   transform: translateY(0) scale(0.98);
 }
 
-/* ---- Sealed box ---- */
+/* ---- SEALED BOX ("A Shimmering Box of Secrets") ---- */
 .a2ui-sealed-box {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.8rem 1.25rem;
-  border: 2px dashed var(--primary);
+  gap: 0.9rem;
+  padding: 1rem 1.4rem;
+  border: 1.5px dashed var(--gold);
   border-radius: var(--radius-md);
-  background: var(--primary-light);
-  color: var(--primary-hover);
-  font-size: 0.95rem;
-  font-weight: 500;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(139, 92, 246, 0.15));
+  color: var(--text-gold);
+  font-size: 0.96rem;
+  font-weight: 600;
   user-select: none;
-  animation: pulse-border 2s infinite;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.18);
+  animation: wardPulse 2.8s infinite alternate;
 }
 
-@keyframes pulse-border {
-  0% { border-color: rgba(79, 70, 229, 0.3); }
-  50% { border-color: rgba(79, 70, 229, 0.8); }
-  100% { border-color: rgba(79, 70, 229, 0.3); }
+@keyframes wardPulse {
+  0% { border-color: rgba(251, 191, 36, 0.35); box-shadow: 0 0 10px rgba(251, 191, 36, 0.1); }
+  100% { border-color: rgba(251, 191, 36, 0.9); box-shadow: 0 0 24px rgba(251, 191, 36, 0.35), 0 0 15px rgba(139, 92, 246, 0.25); }
 }
 
 .sealed-box-icon {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  animation: bounceSlow 2s ease-in-out infinite;
+}
+
+@keyframes bounceSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 .sealed-box-label {
   flex: 1;
+  font-family: var(--font-body);
 }
 
-/* ---- Forms & Inputs ---- */
+/* ---- THE SCROLL OF INCANTATIONS (Text Input) ---- */
 .a2ui-text-input {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
 .input-label, .slider-label, .dropdown-label, .checkbox-group-label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-gold);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .text-input-field {
-  padding: 0.7rem 1rem;
+  padding: 0.75rem 1.1rem;
+  background: rgba(14, 10, 28, 0.85);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.95rem;
-  font-family: inherit;
+  font-family: var(--font-body);
+  color: var(--text-main);
   outline: none;
-  transition: all 0.2s ease;
-  background: #fff;
+  transition: all 0.25s ease;
 }
 
 .text-input-field:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
+  border-color: var(--gold);
+  background: rgba(20, 15, 40, 0.95);
+  box-shadow: 0 0 0 3px var(--gold-light), 0 0 15px var(--gold-glow);
 }
 
-/* ---- Slider ---- */
+/* ---- THE GAUGE OF MAGICAL ENERGY (Mana Slider) ---- */
 .a2ui-slider {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
   padding: 0.5rem 0;
 }
 
@@ -364,128 +820,175 @@ body {
   -webkit-appearance: none;
   width: 100%;
   background: transparent;
+  cursor: pointer;
 }
 
 .a2ui-slider input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 1.25rem;
-  width: 1.25rem;
+  height: 1.4rem;
+  width: 1.4rem;
   border-radius: 50%;
-  background: var(--primary);
+  background: radial-gradient(circle, #fef08a 0%, #fbbf24 60%, #b45309 100%);
   cursor: pointer;
-  margin-top: -0.4rem;
-  box-shadow: var(--shadow-md);
+  margin-top: -0.45rem;
+  box-shadow: 0 0 15px var(--gold-glow), 0 2px 5px rgba(0, 0, 0, 0.6);
   border: 2px solid #fff;
+  transition: transform 0.15s ease;
+}
+
+.a2ui-slider input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
 }
 
 .a2ui-slider input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
-  height: 0.4rem;
-  cursor: pointer;
-  background: var(--border);
+  height: 0.5rem;
+  background: linear-gradient(90deg, #06b6d4 0%, #8b5cf6 50%, #f43f5e 100%);
   border-radius: 999px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-.a2ui-slider input[type=range]:focus::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px var(--primary-light);
-}
-
-/* ---- Dropdown ---- */
+/* ---- THE BOOK OF SPELLS (Dropdown) ---- */
 .a2ui-dropdown {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
 .dropdown-select {
-  padding: 0.7rem 2.5rem 0.7rem 1rem;
+  padding: 0.75rem 2.5rem 0.75rem 1.1rem;
+  background: rgba(14, 10, 28, 0.9) url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23fbbf24%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") no-repeat right 0.85rem top 50%;
+  background-size: 0.7rem auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.95rem;
-  font-family: inherit;
+  font-family: var(--font-body);
+  color: var(--text-main);
   outline: none;
-  background: #fff url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234f46e5%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") no-repeat right 0.7rem top 50%;
-  background-size: 0.65rem auto;
   appearance: none;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .dropdown-select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-light), 0 0 15px var(--gold-glow);
 }
 
-/* ---- Checkbox Group ---- */
+.dropdown-select option {
+  background: #15102d;
+  color: #f1f5f9;
+}
+
+/* ---- THE INGREDIENTS POUCH (Checkbox Group) ---- */
 .a2ui-checkbox-group {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.65rem;
 }
 
 .checkbox-options {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
 .checkbox-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: rgba(18, 14, 38, 0.4);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(168, 85, 247, 0.2);
 }
 
 .checkbox-item input[type="checkbox"] {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.15rem;
+  height: 1.15rem;
   cursor: pointer;
-  accent-color: var(--primary);
+  accent-color: var(--gold);
 }
 
 .checkbox-item label {
-  font-size: 0.95rem;
+  font-size: 0.93rem;
   color: var(--text-main);
   cursor: pointer;
   user-select: none;
 }
 
-/* ---- Chart ---- */
+/* ---- CELESTIAL CHART & SCOREBOARD ---- */
 .a2ui-chart {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1.25rem 1rem 1rem 0;
-  background: #fff;
-  box-shadow: var(--shadow-sm);
+  background: rgba(18, 14, 38, 0.85);
+  box-shadow: var(--shadow-md);
   margin-top: 0.5rem;
 }
+
 .a2ui-chart .chart-title {
-  color: var(--text-main);
-  font-weight: 600;
+  color: var(--text-gold);
+  font-family: var(--font-magic);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
-/* ---- Filter Bar ---- */
+/* Recharts Custom Tooltip Styling on Dark Theme */
+.recharts-default-tooltip {
+  background-color: rgba(20, 15, 45, 0.95) !important;
+  border: 1px solid var(--gold) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 15px var(--gold-glow) !important;
+  color: #fff !important;
+}
+
+/* ---- SIFTING CRYSTALS (Filter Bar) ---- */
 .a2ui-filter-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.55rem;
   padding: 0.5rem 0;
 }
 
 .filter-pill {
-  padding: 0.5rem 1rem;
-  background: var(--bg-app);
+  padding: 0.5rem 1.1rem;
+  background: rgba(26, 20, 52, 0.6);
   color: var(--text-muted);
   border: 1px solid var(--border);
   border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.88rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .filter-pill:hover {
-  background: var(--primary-light);
-  color: var(--primary);
-  border-color: var(--primary-light);
+  background: rgba(139, 92, 246, 0.25);
+  color: #fff;
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+}
+
+/* ---- MUTATION FORM & APPROVAL CARD ---- */
+.a2ui-mutation-form {
+  border: 1px solid var(--border-gold);
+}
+
+.a2ui-approval-card {
+  border: 1.5px solid var(--rose);
+  background: radial-gradient(circle at center, rgba(244, 63, 94, 0.15) 0%, rgba(26, 20, 52, 0.8) 100%);
+  box-shadow: 0 0 25px rgba(244, 63, 94, 0.25);
+}
+
+.a2ui-approval-card h3 {
+  color: #fda4af !important;
 }
